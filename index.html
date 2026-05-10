@@ -220,6 +220,10 @@
       background: rgba(255,255,255,.03);
     }
 
+    video{
+      object-fit: contain; /* important pour vidéo */
+    }
+
     .actions{
       display:flex; gap:10px; align-items:center; flex-wrap: wrap;
       margin-top: 12px;
@@ -264,6 +268,7 @@
       font-weight: 800;
       color: rgba(234,240,255,.92);
       line-height: 1.35;
+      word-break: break-word;
     }
     .commentItem .t{
       font-size: 12px; color: var(--muted); margin-top: 6px; font-weight: 800;
@@ -281,11 +286,8 @@
   </div>
 
   <div class="grid">
-    <!-- Left -->
     <div class="card">
-      <div class="hd">
-        <h2>Compte</h2>
-      </div>
+      <div class="hd"><h2>Compte</h2></div>
       <div class="bd">
 
         <div id="signupForm">
@@ -347,12 +349,9 @@
       </div>
     </div>
 
-    <!-- Right -->
     <div>
       <div class="card" style="margin-bottom: 16px;">
-        <div class="hd">
-          <h2>Publier</h2>
-        </div>
+        <div class="hd"><h2>Publier</h2></div>
         <div class="bd">
           <div id="afterAuth" class="hide">
             <label>Caption (optionnel)</label>
@@ -365,7 +364,7 @@
             <div id="pubMsg" class="msg muted"></div>
           </div>
 
-          <div id="notAuth" class="">
+          <div id="notAuth">
             <div style="color:var(--muted); font-weight:850; line-height:1.35;">
               Connecte-toi pour :
               <div class="spacer"></div>
@@ -406,7 +405,6 @@
     const loginMsg = $("loginMsg");
 
     const btnLogout = $("btnLogout");
-
     const btnReset = $("btnReset");
 
     const afterAuth = $("afterAuth");
@@ -427,7 +425,9 @@
     const li_email = $("li_email");
     const li_password = $("li_password");
 
-    // =============== helpers ===============
+    // Redirect pour reset
+    const redirectTo = window.location.origin + window.location.pathname;
+
     function escapeHtml(s) {
       return String(s ?? "")
         .replaceAll("&","&amp;")
@@ -445,24 +445,26 @@
 
     function fileMediaType(file) {
       if (!file) return null;
-      if (file.type.startsWith("image/")) return "image";
-      if (file.type.startsWith("video/")) return "video";
+      if (file.type?.startsWith("image/")) return "image";
+      if (file.type?.startsWith("video/")) return "video";
       return null;
     }
 
     async function getMyProfile() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return null;
+
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
         .eq("id", user.id)
         .single();
+
       if (error) throw error;
       return data;
     }
 
-    // Cooldown anti "email rate limit exceeded"
+    // =============== anti cooldown ===============
     let signupCooldownUntil = 0;
     let resetCooldownUntil = 0;
     const COOLDOWN_MS = 60000;
@@ -490,26 +492,30 @@
         return;
       }
 
-      const { data: likes, error: likesErr } = await supabase
+      const { data: likesRows, error: likesErr } = await supabase
         .from("likes")
         .select("post_id,user_id");
 
       if (likesErr) throw likesErr;
 
+      const safeLikes = likesRows || [];
       const likesCount = {};
-      for (const l of (likes || [])) likesCount[l.post_id] = (likesCount[l.post_id] || 0) + 1;
+      for (const l of safeLikes) {
+        likesCount[l.post_id] = (likesCount[l.post_id] || 0) + 1;
+      }
 
       const { data: myData } = await supabase.auth.getUser();
       const myUserId = myData.user?.id || null;
 
       const likedByMe = (postId) => {
         if (!myUserId) return false;
-        return (likes || []).some(l => l.post_id === postId && l.user_id === myUserId);
+        return safeLikes.some(l => l.post_id === postId && l.user_id === myUserId);
       };
 
       for (const p of posts) {
         const card = document.createElement("div");
         card.className = "post";
+
         const mediaHtml = p.media_url
           ? (p.media_type === "video"
               ? `<video src="${escapeHtml(p.media_url)}" controls playsinline></video>`
@@ -518,11 +524,12 @@
 
         const timeStr = p.created_at ? new Date(p.created_at).toLocaleString() : "";
 
+        const username = p.user_username || "Utilisateur";
         card.innerHTML = `
           <div class="meta">
             <div class="author">
-              <div class="avatar">${escapeHtml(avatarLetter(p.user_username))}</div>
-              <div>${escapeHtml(p.user_username || "Utilisateur")}</div>
+              <div class="avatar">${escapeHtml(avatarLetter(username))}</div>
+              <div>${escapeHtml(username)}</div>
             </div>
             <div class="time">${escapeHtml(timeStr)}</div>
           </div>
@@ -549,7 +556,7 @@
 
         feed.appendChild(card);
 
-        // comments load
+        // load comments
         const { data: comments, error: cErr } = await supabase
           .from("comments")
           .select("*")
@@ -560,13 +567,18 @@
 
         const list = card.querySelector(`[data-comments="${p.id}"]`);
         list.innerHTML = "";
+
         for (const c of (comments || [])) {
+          const u = c.user_username || "Utilisateur";
+          const content = c.content || "";
+          const t = c.created_at ? new Date(c.created_at).toLocaleString() : "";
+
           const it = document.createElement("div");
           it.className = "commentItem";
           it.innerHTML = `
-            <div class="u">${escapeHtml(c.user_username || "Utilisateur")}</div>
-            <div class="c">${escapeHtml(c.content || "")}</div>
-            <div class="t">${escapeHtml(c.created_at ? new Date(c.created_at).toLocaleString() : "")}</div>
+            <div class="u">${escapeHtml(u)}</div>
+            <div class="c">${escapeHtml(content)}</div>
+            <div class="t">${escapeHtml(t)}</div>
           `;
           list.appendChild(it);
         }
@@ -585,11 +597,13 @@
                 .delete()
                 .eq("post_id", p.id)
                 .eq("user_id", user.id);
+
               if (delErr) throw delErr;
             } else {
               const { error: insErr } = await supabase
                 .from("likes")
                 .insert({ post_id: p.id, user_id: user.id });
+
               if (insErr) throw insErr;
             }
 
@@ -610,6 +624,7 @@
             if (!content) return;
 
             const profile = await getMyProfile();
+
             const { error: insErr } = await supabase
               .from("comments")
               .insert({
@@ -659,9 +674,16 @@
         const { error } = await supabase.auth.signUp({
           email,
           password,
-          options: { data: { username, first_name: first_name || null, last_name: last_name || null } }
+          options: {
+            data: {
+              username,
+              first_name: first_name || null,
+              last_name: last_name || null
+            }
+          }
         });
         if (error) throw error;
+
         signupMsg.className = "msg ok";
         signupMsg.textContent = "Compte créé ✅ Vérifie tes emails.";
       }catch(e){
@@ -719,9 +741,9 @@
       loginMsg.textContent = "Envoi du lien de reset...";
 
       try{
-        const redirectTo = window.location.origin + window.location.pathname;
         const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
         if (error) throw error;
+
         loginMsg.className = "msg ok";
         loginMsg.textContent = "Lien envoyé ✅ Vérifie tes emails.";
       }catch(e){
@@ -765,16 +787,21 @@
 
         pubMsg.textContent = "Upload média...";
 
+        // bucket media = celui que tu utilises déjà
+        const bucket = "media";
+
         const ext = (file.name.includes(".") ? file.name.split(".").pop() : (mediaType === "image" ? "jpg" : "mp4")).toLowerCase();
-        const path = `public/${user.id}/${crypto.randomUUID()}.${ext}`;
+        const uid = (crypto?.randomUUID ? crypto.randomUUID() : String(Date.now()) + "-" + Math.random().toString(16).slice(2));
+        const path = `public/${user.id}/${uid}.${ext}`;
 
         const { error: upErr } = await supabase.storage
-          .from("media")
+          .from(bucket)
           .upload(path, file, { upsert: false });
 
         if (upErr) throw upErr;
 
-        const { data: urlData } = supabase.storage.from("media").getPublicUrl(path);
+        // URL publique
+        const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(path);
         const publicUrl = urlData.publicUrl;
 
         const { error: insErr } = await supabase.from("posts").insert({
@@ -821,7 +848,6 @@
       }
     });
 
-    // initial check
     (async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
@@ -829,8 +855,10 @@
         signupForm.classList.add("hide");
         afterAuth.classList.remove("hide");
         notAuth.classList.add("hide");
+
         const profile = await getMyProfile().catch(() => null);
         authBadge.textContent = `Connecté : ${profile?.username || user.email}`;
+
         await loadFeed();
       }
     })();
