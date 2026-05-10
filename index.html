@@ -276,7 +276,7 @@
     .spacer{ height:8px; }
 
     .loading { text-align: center; padding: 40px; color: var(--muted); }
-    .error-msg { color: #FF8A8A; text-align: center; padding: 20px; }
+    .error-msg { color: #FF8A8A; text-align: center; padding: 20px; font-weight: 900; }
   </style>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -388,6 +388,19 @@
       const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind0c21la296ZnBlYWl4cW9idWlrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4Mjk2MjcsImV4cCI6MjA5MzQwNTYyN30.AUm9renaVr3A8pzDNx5Dm_f4XJrhkIKlnUePm6Gl5S0";
       const redirectTo = "https://starconnect-intertainment.github.io/Shop-13/";
 
+      const authBadge = document.getElementById("authBadge");
+      const feed = document.getElementById("feed");
+
+      // ✅ Debug global (sinon Edge peut planter sans que tu voies pourquoi)
+      window.addEventListener("error", (e) => {
+        console.error("Page error:", e.error || e.message);
+        if (feed) feed.innerHTML = `<div class="error-msg">⚠️ Erreur page: ${e.message || "inconnue"}</div>`;
+      });
+      window.addEventListener("unhandledrejection", (e) => {
+        console.error("Unhandled rejection:", e.reason);
+        if (feed) feed.innerHTML = `<div class="error-msg">⚠️ Erreur non gérée (promise).</div>`;
+      });
+
       let supabase = null;
       try {
         supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
@@ -395,13 +408,9 @@
         });
       } catch (e) {
         console.error("Erreur chargement Supabase:", e);
-        document.getElementById('feed').innerHTML =
-          '<div class="error-msg">⚠️ Erreur: Impossible de charger Supabase.</div>';
+        feed.innerHTML = '<div class="error-msg">⚠️ Erreur: impossible de charger Supabase.</div>';
         return;
       }
-
-      const authBadge = document.getElementById("authBadge");
-      const feed = document.getElementById("feed");
 
       const signupForm = document.getElementById("signupForm");
       const btnSignup = document.getElementById("btnSignup");
@@ -474,18 +483,17 @@
       }
 
       async function getLikeRow(postId, userIdOrNull) {
-        // userIdOrNull = null => anonyme => IS NULL
-        const q = supabase
-          .from("likes")
-          .select("post_id")
-          .eq("post_id", postId);
+        const q = supabase.from("likes").select("post_id").eq("post_id", postId);
 
-        const { data, error } = userIdOrNull === null
-          ? await q.is("user_id", null).maybeSingle()
-          : await q.eq("user_id", userIdOrNull).maybeSingle();
-
-        if (error) return { row: null, error };
-        return { row: data, error: null };
+        if (userIdOrNull === null) {
+          const { data, error } = await q.is("user_id", null).maybeSingle();
+          if (error) return { row: null, error };
+          return { row: data, error: null };
+        } else {
+          const { data, error } = await q.eq("user_id", userIdOrNull).maybeSingle();
+          if (error) return { row: null, error };
+          return { row: data, error: null };
+        }
       }
 
       async function countLikes(postId) {
@@ -499,7 +507,6 @@
       }
 
       async function loadComments(postId, limit = 50) {
-        // ✅ colonne comments.content
         const { data, error } = await supabase
           .from("comments")
           .select("id, user_username, content, created_at")
@@ -518,22 +525,20 @@
         const { row, error: selErr } = await getLikeRow(postId, userIdOrNull);
         if (selErr) throw selErr;
 
-        const { error: delErr } = row
-          ? await supabase
-              .from("likes")
-              .delete()
-              .eq("post_id", postId)
-              .modify(q => {
-                if (userIdOrNull === null) q.is("user_id", null);
-                else q.eq("user_id", userIdOrNull);
-              })
-          : { error: null };
+        if (row) {
+          const { error: delErr } = await supabase
+            .from("likes")
+            .delete()
+            .eq("post_id", postId)
+            .modify(q => {
+              if (userIdOrNull === null) q.is("user_id", null);
+              else q.eq("user_id", userIdOrNull);
+            });
 
-        if (delErr) throw delErr;
+          if (delErr) throw delErr;
+          return { liked: false };
+        }
 
-        if (row) return { liked: false };
-
-        // insert
         const { error: insErr } = await supabase.from("likes").insert({
           post_id: postId,
           user_id: userIdOrNull
@@ -558,9 +563,9 @@
 
         const { error } = await supabase.from("comments").insert({
           post_id: postId,
-          user_id: userIdOrNull,     // ✅ null possible si DB ok
+          user_id: userIdOrNull,
           user_username,
-          content: clean             // ✅ content (pas text)
+          content: clean
         });
 
         if (error) throw error;
@@ -640,16 +645,14 @@
 
             feed.appendChild(card);
 
-            // Like
             const likeBtn = document.getElementById(likeBtnId);
+
             likeBtn.addEventListener("click", async () => {
               try {
                 await toggleLike(p.id);
-
                 const count = await countLikes(p.id);
                 document.getElementById(likesCountElId).textContent = String(count);
 
-                // update state button (connecté seulement pour le visuel; anonyme visuel possible mais pas indispensable)
                 if (userIdOrNull) {
                   const { row } = await getLikeRow(p.id, userIdOrNull);
                   likeBtn.classList.toggle("liked", !!row);
@@ -659,14 +662,11 @@
               }
             });
 
-            // Comment
             const btnComment = document.getElementById(`btnComment-${p.id}`);
             btnComment.addEventListener("click", async () => {
               try {
                 const input = document.getElementById(commentInputId);
-                const text = input.value;
-
-                await addComment(p.id, text);
+                await addComment(p.id, input.value);
                 input.value = "";
 
                 const comments = await loadComments(p.id);
@@ -685,7 +685,7 @@
               }
             });
 
-            // Initial load likes + comments
+            // Initial render likes + comments
             (async () => {
               try {
                 const count = await countLikes(p.id);
@@ -714,7 +714,7 @@
           }
         } catch (error) {
           console.error("Erreur chargement feed:", error);
-          feed.innerHTML = `<div class="error-msg">⚠️ Erreur: ${escapeHtml(error.message || String(error))}</div>`;
+          feed.innerHTML = `<div class="error-msg">⚠️ Erreur: ${escapeHtml(error?.message || String(error))}</div>`;
         }
       }
 
@@ -791,7 +791,8 @@
           loginMsg.textContent = "Connecté ✅";
           setLoggedUI(true);
 
-          alert("Connexion réussie !");
+          // ✅ IMPORTANT : forcer refresh direct
+          await loadFeed();
         }catch(e){
           loginMsg.className = "msg err";
           loginMsg.textContent = e?.message || String(e);
@@ -802,7 +803,7 @@
         await supabase.auth.signOut();
         authBadge.textContent = "Connecte-toi pour interagir";
         setLoggedUI(false);
-        loadFeed();
+        await loadFeed();
       });
 
       btnReset.addEventListener("click", async () => {
@@ -868,7 +869,7 @@
           pubMsg.className = "msg ok";
           pubMsg.textContent = "Publié ✅";
 
-          loadFeed();
+          await loadFeed();
         }catch(e){
           pubMsg.className = "msg err";
           pubMsg.textContent = e?.message || String(e);
@@ -880,14 +881,20 @@
           setLoggedUI(true);
           const profile = await getMyProfile();
           authBadge.textContent = `Connecté : ${profile?.username || session.user.email}`;
+
+          // ✅ IMPORTANT pour Edge/refresh timing
+          await loadFeed();
         } else {
           setLoggedUI(false);
           authBadge.textContent = "Connecte-toi pour interagir";
+          await loadFeed();
         }
       });
 
+      // Initial load
       loadFeed();
 
+      // Mise à jour badge (optionnel mais utile)
       supabase.auth.getUser().then(async ({ data: { user } }) => {
         if (user) {
           const profile = await getMyProfile();
