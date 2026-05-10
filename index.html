@@ -143,11 +143,6 @@
       border-color: rgba(239,68,68,.45);
       color: #ffd8d8;
     }
-    .btn-sm{
-      width: auto;
-      padding: 8px 14px;
-      font-size: 13px;
-    }
 
     .msg{
       margin-top: 10px;
@@ -236,7 +231,6 @@
       background: rgba(0,0,0,.16);
       color: var(--muted);
       font-weight: 950;
-      cursor: pointer;
     }
     .likeBtn.liked{
       background: rgba(239,68,68,.18);
@@ -347,7 +341,7 @@
 
           <div style="display:flex; gap:10px; margin-top:12px;">
             <button class="btn-secondary" id="btnReset" style="flex:1;">Mot de passe oublié</button>
-            <button class="btn-danger" id="btnLogout" style="flex:1;">Déconnexion</button>
+            <button class="btn-danger hide" id="btnLogout" style="flex:1;">Déconnexion</button>
           </div>
 
           <div id="loginMsg" class="msg muted"></div>
@@ -389,25 +383,58 @@
   </div>
 
   <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', async () => {
       const SUPABASE_URL = "https://wtsmekozfpeaixqobuik.supabase.co";
       const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind0c21la296ZnBlYWl4cW9idWlrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4Mjk2MjcsImV4cCI6MjA5MzQwNTYyN30.AUm9renaVr3A8pzDNx5Dm_f4XJrhkIKlnUePm6Gl5S0";
-      
+      const redirectTo = "https://starconnect-intertainment.github.io/Shop-13/";
+
+      const authBadge = document.getElementById("authBadge");
+      const feed = document.getElementById("feed");
+
+      // Gestionnaire d'erreurs global
+      window.addEventListener("error", (e) => {
+        console.error("Page error:", e.error || e.message);
+        if (feed && feed.innerHTML === '') {
+          feed.innerHTML = `<div class="error-msg">⚠️ Erreur: ${e.message || "inconnue"}</div>`;
+        }
+      });
+
       let supabase = null;
-      
       try {
         supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
           auth: { persistSession: true, autoRefreshToken: true }
         });
       } catch (e) {
-        console.error("Erreur Supabase:", e);
-        document.getElementById("feed").innerHTML = '<div class="error-msg">⚠️ Erreur de chargement</div>';
+        console.error("Erreur chargement Supabase:", e);
+        feed.innerHTML = '<div class="error-msg">⚠️ Erreur: impossible de charger Supabase.</div>';
         return;
       }
 
-      const authBadge = document.getElementById("authBadge");
-      const feed = document.getElementById("feed");
-      
+      const signupForm = document.getElementById("signupForm");
+      const btnSignup = document.getElementById("btnSignup");
+      const signupMsg = document.getElementById("signupMsg");
+      const btnLogin = document.getElementById("btnLogin");
+      const loginMsg = document.getElementById("loginMsg");
+      const btnLogout = document.getElementById("btnLogout");
+      const btnReset = document.getElementById("btnReset");
+      const afterAuth = document.getElementById("afterAuth");
+      const notAuth = document.getElementById("notAuth");
+      const btnPublish = document.getElementById("btnPublish");
+      const pubMsg = document.getElementById("pubMsg");
+      const captionEl = document.getElementById("caption");
+      const mediaFileEl = document.getElementById("mediaFile");
+      const su_username = document.getElementById("su_username");
+      const su_first = document.getElementById("su_first");
+      const su_last = document.getElementById("su_last");
+      const su_email = document.getElementById("su_email");
+      const su_password = document.getElementById("su_password");
+      const li_email = document.getElementById("li_email");
+      const li_password = document.getElementById("li_password");
+
+      // Cache pour éviter les appels répétés
+      let currentUser = null;
+      let currentProfile = null;
+
       function escapeHtml(s) {
         if (!s) return "";
         return String(s)
@@ -418,85 +445,129 @@
           .replace(/'/g, "&#039;");
       }
 
-      async function getSessionUser() {
-        try {
-          const { data: { user }, error } = await supabase.auth.getUser();
-          if (error || !user) return null;
-          return user;
-        } catch (e) {
-          console.error("Erreur getSessionUser:", e);
-          return null;
-        }
+      function avatarLetter(username) {
+        const u = String(username || "").trim();
+        if (!u) return "•";
+        return u[0].toUpperCase();
       }
 
-      async function getProfile(userId) {
-        const { data } = await supabase.from("profiles").select("username").eq("id", userId).single();
+      function fileMediaType(file) {
+        if (!file) return null;
+        if (file.type?.startsWith("image/")) return "image";
+        if (file.type?.startsWith("video/")) return "video";
+        return null;
+      }
+
+      async function getMyProfile() {
+        if (currentProfile) return currentProfile;
+        
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return null;
+
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", user.id)
+          .single();
+
+        if (error) return null;
+        currentProfile = data;
         return data;
       }
 
-      // === FONCTIONS LIKES ===
-      async function getLikeCount(postId) {
+      async function getSessionUser() {
+        if (currentUser) return currentUser;
+        
+        const { data: { user } } = await supabase.auth.getUser();
+        currentUser = user || null;
+        return currentUser;
+      }
+
+      async function countLikes(postId) {
         const { count, error } = await supabase
           .from("likes")
           .select("*", { count: "exact", head: true })
           .eq("post_id", postId);
+
         if (error) return 0;
         return count || 0;
       }
 
-      async function isLikedByUser(postId, userId) {
-        if (!userId) return false;
-        const { data } = await supabase
-          .from("likes")
-          .select("id")
-          .eq("post_id", postId)
-          .eq("user_id", userId)
-          .maybeSingle();
-        return !!data;
-      }
-
-      async function toggleLike(postId, userId) {
-        const liked = await isLikedByUser(postId, userId);
-        if (liked) {
-          const { error } = await supabase
-            .from("likes")
-            .delete()
-            .eq("post_id", postId)
-            .eq("user_id", userId);
-          if (error) throw error;
-          return false;
-        } else {
-          const { error } = await supabase
-            .from("likes")
-            .insert({ post_id: postId, user_id: userId });
-          if (error) throw error;
-          return true;
-        }
-      }
-
-      // === FONCTIONS COMMENTAIRES ===
-      async function getComments(postId) {
+      async function loadComments(postId, limit = 50) {
         const { data, error } = await supabase
           .from("comments")
-          .select("*")
+          .select("id, user_username, content, created_at")
           .eq("post_id", postId)
-          .order("created_at", { ascending: true });
+          .order("created_at", { ascending: true })
+          .limit(limit);
+
         if (error) return [];
         return data || [];
       }
 
-      async function addComment(postId, content, userId, username) {
-        if (!content || !content.trim()) throw new Error("Commentaire vide");
+      async function toggleLike(postId) {
+        const user = await getSessionUser();
+        const userIdOrNull = user ? user.id : null;
+
+        // Vérifier si déjà liké
+        let query = supabase.from("likes").select("id").eq("post_id", postId);
+        
+        if (userIdOrNull === null) {
+          query = query.is("user_id", null);
+        } else {
+          query = query.eq("user_id", userIdOrNull);
+        }
+        
+        const { data: existingLike } = await query.maybeSingle();
+
+        if (existingLike) {
+          // Supprimer le like
+          const { error: delErr } = await supabase
+            .from("likes")
+            .delete()
+            .eq("id", existingLike.id);
+
+          if (delErr) throw delErr;
+          return { liked: false };
+        } else {
+          // Ajouter le like
+          const { error: insErr } = await supabase.from("likes").insert({
+            post_id: postId,
+            user_id: userIdOrNull
+          });
+
+          if (insErr) throw insErr;
+          return { liked: true };
+        }
+      }
+
+      async function addComment(postId, text) {
+        const clean = (text || "").trim();
+        if (!clean) throw new Error("Écris un commentaire.");
+
+        const user = await getSessionUser();
+        const userIdOrNull = user ? user.id : null;
+
+        let user_username = "Anonyme";
+        if (user) {
+          const profile = await getMyProfile();
+          user_username = profile?.username || user.email || "Utilisateur";
+        }
+
         const { error } = await supabase.from("comments").insert({
           post_id: postId,
-          user_id: userId,
-          user_username: username,
-          content: content.trim()
+          user_id: userIdOrNull,
+          user_username,
+          content: clean
         });
+
         if (error) throw error;
+        return true;
       }
 
       async function loadFeed() {
+        feed.innerHTML = '<div class="loading">Chargement des publications...</div>';
+
         try {
           const { data: posts, error } = await supabase
             .from("posts")
@@ -506,348 +577,354 @@
           if (error) throw error;
 
           if (!posts || posts.length === 0) {
-            feed.innerHTML = '<div class="post" style="text-align:center;">📭 Aucune publication</div>';
+            feed.innerHTML = '<div class="post" style="text-align:center; color: var(--muted);">📭 Aucune publication pour le moment.</div>';
             return;
           }
 
           const user = await getSessionUser();
-          const userId = user?.id;
-          
-          feed.innerHTML = '';
-          
+          const userId = user ? user.id : null;
+
+          // Récupérer tous les likes en une seule requête
+          const postIds = posts.map(p => p.id);
+          const { data: allLikes } = await supabase
+            .from("likes")
+            .select("post_id, user_id")
+            .in("post_id", postIds);
+
+          // Récupérer tous les commentaires en une seule requête
+          const { data: allComments } = await supabase
+            .from("comments")
+            .select("*")
+            .in("post_id", postIds)
+            .order("created_at", { ascending: true });
+
+          // Créer des maps pour un accès rapide
+          const likesMap = new Map();
+          const commentsMap = new Map();
+
+          if (allLikes) {
+            allLikes.forEach(like => {
+              if (!likesMap.has(like.post_id)) {
+                likesMap.set(like.post_id, { count: 0, userLiked: false });
+              }
+              const data = likesMap.get(like.post_id);
+              data.count++;
+              if (userId && like.user_id === userId) {
+                data.userLiked = true;
+              }
+            });
+          }
+
+          if (allComments) {
+            allComments.forEach(comment => {
+              if (!commentsMap.has(comment.post_id)) {
+                commentsMap.set(comment.post_id, []);
+              }
+              commentsMap.get(comment.post_id).push(comment);
+            });
+          }
+
+          feed.innerHTML = "";
+
           for (const p of posts) {
+            const card = document.createElement("div");
+            card.className = "post";
+
             const timeStr = p.created_at ? new Date(p.created_at).toLocaleString() : "";
             const username = p.user_username || "Utilisateur";
-            const likeCount = await getLikeCount(p.id);
-            const liked = userId ? await isLikedByUser(p.id, userId) : false;
-            const comments = await getComments(p.id);
             
-            const postDiv = document.createElement('div');
-            postDiv.className = 'post';
-            postDiv.setAttribute('data-post-id', p.id);
-            
-            // Construction HTML
-            let commentsHtml = '';
-            if (comments.length > 0) {
-              commentsHtml = comments.map(c => `
-                <div class="commentItem">
-                  <div class="u">${escapeHtml(c.user_username || 'Utilisateur')}</div>
-                  <div class="c">${escapeHtml(c.content)}</div>
-                  <div class="t">${new Date(c.created_at).toLocaleString()}</div>
-                </div>
-              `).join('');
-            } else {
-              commentsHtml = '<div style="color:var(--muted); margin-top:10px;">💬 Aucun commentaire</div>';
-            }
-            
-            postDiv.innerHTML = `
+            const likesData = likesMap.get(p.id) || { count: 0, userLiked: false };
+            const commentsList = commentsMap.get(p.id) || [];
+
+            const mediaHtml = p.media_url
+              ? (p.media_type === "video"
+                ? `<video src="${escapeHtml(p.media_url)}" controls playsinline></video>`
+                : `<img src="${escapeHtml(p.media_url)}" alt="media" loading="lazy" />`)
+              : "";
+
+            const postId = p.id;
+            const likeBtnId = `likeBtn-${postId}`;
+            const likesCountId = `likesCount-${postId}`;
+            const commentsBoxId = `commentsBox-${postId}`;
+            const commentInputId = `commentInput-${postId}`;
+
+            card.innerHTML = `
               <div class="meta">
                 <div class="author">
-                  <div class="avatar">${escapeHtml(username.charAt(0).toUpperCase())}</div>
+                  <div class="avatar">${escapeHtml(avatarLetter(username))}</div>
                   <div>${escapeHtml(username)}</div>
                 </div>
                 <div class="time">${escapeHtml(timeStr)}</div>
               </div>
               ${p.caption ? `<div class="caption">${escapeHtml(p.caption)}</div>` : ""}
-              ${p.media_url ? (p.media_type === "video" ? 
-                `<video src="${escapeHtml(p.media_url)}" controls playsinline></video>` : 
-                `<img src="${escapeHtml(p.media_url)}" loading="lazy" />`) : ""}
+              ${mediaHtml}
               <div class="actions">
-                <button class="likeBtn ${liked ? 'liked' : ''}" data-post-id="${p.id}">
-                  ❤️ <span class="likes-count">${likeCount}</span>
+                <button class="likeBtn ${likesData.userLiked ? 'liked' : ''}" id="${likeBtnId}" data-postid="${postId}">
+                  ❤️ <span id="${likesCountId}">${likesData.count}</span>
                 </button>
               </div>
               <div class="commentBox">
                 <div class="commentRow">
-                  <input type="text" class="commentInput" placeholder="${user ? 'Écrire un commentaire...' : 'Connectez-vous pour commenter'}" ${!user ? 'disabled' : ''} />
-                  <button class="btn-secondary btn-sm submitCommentBtn" data-post-id="${p.id}" ${!user ? 'disabled' : ''}>Envoyer</button>
+                  <input id="${commentInputId}" placeholder="${user ? 'Écrire un commentaire...' : 'Connectez-vous pour commenter'}" ${!user ? 'disabled' : ''} />
+                  <button class="btn-secondary" data-postid="${postId}" id="btnComment-${postId}" style="flex:0 0 auto; width:auto; padding:10px 14px;" ${!user ? 'disabled' : ''}>
+                    Envoyer
+                  </button>
                 </div>
-                <div class="commentsList">${commentsHtml}</div>
+                <div id="${commentsBoxId}">
+                  ${commentsList.length > 0 ? commentsList.map(c => `
+                    <div class="commentItem">
+                      <div class="u">${escapeHtml(c.user_username || 'Utilisateur')}</div>
+                      <div class="c">${escapeHtml(c.content || '')}</div>
+                      <div class="t">${c.created_at ? escapeHtml(new Date(c.created_at).toLocaleString()) : ''}</div>
+                    </div>
+                  `).join("") : '<div style="color:var(--muted); font-weight:850; margin-top:10px;">Pas encore de commentaires.</div>'}
+                </div>
               </div>
             `;
-            
-            feed.appendChild(postDiv);
+
+            feed.appendChild(card);
+
+            // Attacher les événements après ajout au DOM
+            const likeBtn = document.getElementById(likeBtnId);
+            if (likeBtn) {
+              likeBtn.addEventListener("click", async (e) => {
+                e.preventDefault();
+                try {
+                  const result = await toggleLike(postId);
+                  const newCount = await countLikes(postId);
+                  document.getElementById(likesCountId).textContent = newCount;
+                  likeBtn.classList.toggle("liked", result.liked);
+                } catch (err) {
+                  console.error("Like error:", err);
+                  alert("Erreur: " + (err.message || "Impossible de liker"));
+                }
+              });
+            }
+
+            const commentBtn = document.getElementById(`btnComment-${postId}`);
+            if (commentBtn) {
+              commentBtn.addEventListener("click", async () => {
+                const input = document.getElementById(commentInputId);
+                if (!input.value.trim()) {
+                  alert("Écrivez un commentaire!");
+                  return;
+                }
+                try {
+                  await addComment(postId, input.value);
+                  input.value = "";
+                  
+                  // Recharger uniquement les commentaires pour ce post
+                  const newComments = await loadComments(postId);
+                  const commentsBox = document.getElementById(commentsBoxId);
+                  if (commentsBox) {
+                    commentsBox.innerHTML = newComments.length > 0 ? newComments.map(c => `
+                      <div class="commentItem">
+                        <div class="u">${escapeHtml(c.user_username || 'Utilisateur')}</div>
+                        <div class="c">${escapeHtml(c.content || '')}</div>
+                        <div class="t">${c.created_at ? escapeHtml(new Date(c.created_at).toLocaleString()) : ''}</div>
+                      </div>
+                    `).join("") : '<div style="color:var(--muted); font-weight:850; margin-top:10px;">Pas encore de commentaires.</div>';
+                  }
+                } catch (err) {
+                  console.error("Comment error:", err);
+                  alert("Erreur: " + (err.message || "Impossible de commenter"));
+                }
+              });
+            }
           }
-          
-          // Attacher les événements LIKE
-          document.querySelectorAll('.likeBtn').forEach(btn => {
-            btn.removeEventListener('click', handleLike);
-            btn.addEventListener('click', handleLike);
-          });
-          
-          // Attacher les événements COMMENTAIRE
-          document.querySelectorAll('.submitCommentBtn').forEach(btn => {
-            btn.removeEventListener('click', handleComment);
-            btn.addEventListener('click', handleComment);
-          });
-          
         } catch (error) {
-          console.error("Erreur feed:", error);
-          feed.innerHTML = `<div class="error-msg">⚠️ Erreur: ${escapeHtml(error.message)}</div>`;
-        }
-      }
-      
-      // Gestionnaire LIKE
-      async function handleLike(e) {
-        const btn = e.currentTarget;
-        const postId = btn.getAttribute('data-post-id');
-        const user = await getSessionUser();
-        
-        if (!user) {
-          alert("Connectez-vous pour liker");
-          return;
-        }
-        
-        try {
-          const newLiked = await toggleLike(postId, user.id);
-          const newCount = await getLikeCount(postId);
-          
-          if (newLiked) {
-            btn.classList.add('liked');
-          } else {
-            btn.classList.remove('liked');
-          }
-          
-          const countSpan = btn.querySelector('.likes-count');
-          if (countSpan) countSpan.textContent = newCount;
-        } catch (err) {
-          console.error("Erreur like:", err);
-          alert("Erreur: " + err.message);
-        }
-      }
-      
-      // Gestionnaire COMMENTAIRE
-      async function handleComment(e) {
-        const btn = e.currentTarget;
-        const postId = btn.getAttribute('data-post-id');
-        const postDiv = btn.closest('.post');
-        const input = postDiv.querySelector('.commentInput');
-        const content = input.value;
-        
-        const user = await getSessionUser();
-        if (!user) {
-          alert("Connectez-vous pour commenter");
-          return;
-        }
-        
-        if (!content || !content.trim()) {
-          alert("Écrivez un commentaire");
-          return;
-        }
-        
-        try {
-          const profile = await getProfile(user.id);
-          const username = profile?.username || user.email.split('@')[0];
-          
-          await addComment(postId, content, user.id, username);
-          input.value = '';
-          
-          // Recharger les commentaires pour ce post
-          const newComments = await getComments(postId);
-          const commentsList = postDiv.querySelector('.commentsList');
-          
-          if (newComments.length > 0) {
-            commentsList.innerHTML = newComments.map(c => `
-              <div class="commentItem">
-                <div class="u">${escapeHtml(c.user_username || 'Utilisateur')}</div>
-                <div class="c">${escapeHtml(c.content)}</div>
-                <div class="t">${new Date(c.created_at).toLocaleString()}</div>
-              </div>
-            `).join('');
-          } else {
-            commentsList.innerHTML = '<div style="color:var(--muted); margin-top:10px;">💬 Aucun commentaire</div>';
-          }
-        } catch (err) {
-          console.error("Erreur commentaire:", err);
-          alert("Erreur: " + err.message);
+          console.error("Erreur chargement feed:", error);
+          feed.innerHTML = `<div class="error-msg">⚠️ Erreur: ${escapeHtml(error?.message || String(error))}</div>`;
         }
       }
 
-      async function updateUIForUser(user) {
-        const afterAuth = document.getElementById("afterAuth");
-        const notAuth = document.getElementById("notAuth");
-        const signupFormElement = document.getElementById("signupForm");
-        const btnLogoutElement = document.getElementById("btnLogout");
-        
-        if (user) {
-          afterAuth.classList.remove("hide");
-          notAuth.classList.add("hide");
-          signupFormElement.classList.add("hide");
-          btnLogoutElement.classList.remove("hide");
-          authBadge.textContent = `Connecté : ${user.email}`;
+      function setLoggedUI(isLogged) {
+        if (isLogged) {
+          signupForm?.classList.add("hide");
+          afterAuth?.classList.remove("hide");
+          notAuth?.classList.add("hide");
+          btnLogout?.classList.remove("hide");
         } else {
-          afterAuth.classList.add("hide");
-          notAuth.classList.remove("hide");
-          signupFormElement.classList.remove("hide");
-          btnLogoutElement.classList.add("hide");
-          authBadge.textContent = "Non connecté";
+          signupForm?.classList.remove("hide");
+          afterAuth?.classList.add("hide");
+          notAuth?.classList.remove("hide");
+          btnLogout?.classList.add("hide");
+          currentUser = null;
+          currentProfile = null;
         }
       }
 
-      // Événements
-      document.getElementById("btnSignup")?.addEventListener("click", async () => {
-        const email = document.getElementById("su_email").value.trim();
-        const password = document.getElementById("su_password").value;
-        const username = document.getElementById("su_username").value.trim();
-        const first_name = document.getElementById("su_first").value.trim();
-        const last_name = document.getElementById("su_last").value.trim();
-        const msgDiv = document.getElementById("signupMsg");
-        
-        if (!email || !password || !username) {
-          msgDiv.textContent = "Tous les champs sont requis";
-          msgDiv.className = "msg err";
-          return;
-        }
-        
-        if (password.length < 6) {
-          msgDiv.textContent = "Mot de passe min 6 caractères";
-          msgDiv.className = "msg err";
-          return;
-        }
-        
+      btnSignup.addEventListener("click", async () => {
         try {
-          msgDiv.textContent = "Création...";
+          const username = su_username.value.trim();
+          const first_name = su_first.value.trim();
+          const last_name = su_last.value.trim();
+          const email = su_email.value.trim();
+          const password = su_password.value;
+
+          if (!username) throw new Error("Username requis.");
+          if (!email) throw new Error("Email requis.");
+          if (!password) throw new Error("Mot de passe requis.");
+          if (password.length < 6) throw new Error("Mot de passe min 6 caractères.");
+
+          signupMsg.className = "msg muted";
+          signupMsg.textContent = "Création du compte...";
+
           const { error } = await supabase.auth.signUp({
-            email, password,
-            options: { data: { username, first_name, last_name } }
+            email,
+            password,
+            options: {
+              data: { username, first_name: first_name || null, last_name: last_name || null }
+            }
           });
-          
+
           if (error) throw error;
-          msgDiv.textContent = "✅ Compte créé ! Vérifiez vos emails";
-          msgDiv.className = "msg ok";
-        } catch(e) {
-          msgDiv.textContent = e.message;
-          msgDiv.className = "msg err";
+
+          signupMsg.className = "msg ok";
+          signupMsg.textContent = "Compte créé ✅ Vérifie tes emails.";
+        } catch (e) {
+          signupMsg.className = "msg err";
+          signupMsg.textContent = e?.message || String(e);
         }
       });
 
-      document.getElementById("btnLogin")?.addEventListener("click", async () => {
-        const email = document.getElementById("li_email").value.trim();
-        const password = document.getElementById("li_password").value;
-        const msgDiv = document.getElementById("loginMsg");
-        
-        if (!email || !password) {
-          msgDiv.textContent = "Email et mot de passe requis";
-          msgDiv.className = "msg err";
-          return;
-        }
-        
+      btnLogin.addEventListener("click", async () => {
         try {
-          msgDiv.textContent = "Connexion...";
+          loginMsg.className = "msg muted";
+          loginMsg.textContent = "Connexion...";
+
+          const email = li_email.value.trim();
+          const password = li_password.value;
+
+          if (!email) throw new Error("Email requis.");
+          if (!password) throw new Error("Mot de passe requis.");
+
           const { error } = await supabase.auth.signInWithPassword({ email, password });
           if (error) throw error;
+
+          currentUser = null;
+          currentProfile = null;
           
-          msgDiv.textContent = "✅ Connecté !";
-          msgDiv.className = "msg ok";
-          
-          const user = await getSessionUser();
-          await updateUIForUser(user);
+          const profile = await getMyProfile();
+          authBadge.textContent = `Connecté : ${profile?.username || email}`;
+
+          loginMsg.className = "msg ok";
+          loginMsg.textContent = "Connecté ✅";
+          setLoggedUI(true);
           await loadFeed();
-          
-        } catch(e) {
-          msgDiv.textContent = e.message;
-          msgDiv.className = "msg err";
+        } catch (e) {
+          loginMsg.className = "msg err";
+          loginMsg.textContent = e?.message || String(e);
         }
       });
 
-      document.getElementById("btnLogout")?.addEventListener("click", async () => {
+      btnLogout.addEventListener("click", async () => {
         await supabase.auth.signOut();
-        await updateUIForUser(null);
+        currentUser = null;
+        currentProfile = null;
+        authBadge.textContent = "Connecte-toi pour interagir";
+        setLoggedUI(false);
         await loadFeed();
       });
 
-      document.getElementById("btnReset")?.addEventListener("click", async () => {
-        const email = document.getElementById("li_email").value.trim() || document.getElementById("su_email").value.trim();
-        if (!email) {
-          alert("Entrez votre email");
-          return;
+      btnReset.addEventListener("click", async () => {
+        const email = (li_email.value || su_email.value || "").trim();
+        if (!email) return alert("Entre d’abord ton email.");
+
+        try {
+          const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
+          if (error) throw error;
+          alert("Lien de réinitialisation envoyé ✅ Vérifie tes emails.");
+        } catch (e) {
+          alert(e?.message || String(e));
         }
-        const { error } = await supabase.auth.resetPasswordForEmail(email);
-        if (error) alert(error.message);
-        else alert("Email de réinitialisation envoyé !");
       });
 
-      document.getElementById("btnPublish")?.addEventListener("click", async () => {
-        const file = document.getElementById("mediaFile").files[0];
-        const caption = document.getElementById("caption").value.trim();
-        const msgDiv = document.getElementById("pubMsg");
-        
-        if (!file) {
-          msgDiv.textContent = "Choisissez un fichier";
-          msgDiv.className = "msg err";
-          return;
-        }
-        
-        const user = await getSessionUser();
-        if (!user) {
-          msgDiv.textContent = "Connectez-vous d'abord";
-          msgDiv.className = "msg err";
-          return;
-        }
-        
+      btnPublish.addEventListener("click", async () => {
         try {
-          msgDiv.textContent = "Upload en cours...";
-          const fileExt = file.name.split('.').pop();
-          const fileName = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
-          const filePath = `${user.id}/${fileName}`;
-          
-          const { error: uploadError } = await supabase.storage
-            .from('media')
-            .upload(filePath, file);
-            
-          if (uploadError) throw uploadError;
-          
-          const { data: { publicUrl } } = supabase.storage
-            .from('media')
-            .getPublicUrl(filePath);
-          
-          const mediaType = file.type.startsWith('image/') ? 'image' : 'video';
-          
-          const profile = await getProfile(user.id);
-          const username = profile?.username || user.email.split('@')[0];
-          
-          const { error: insertError } = await supabase
-            .from('posts')
-            .insert({
-              user_id: user.id,
-              user_username: username,
-              caption: caption || null,
-              media_url: publicUrl,
-              media_type: mediaType
-            });
-            
-          if (insertError) throw insertError;
-          
-          msgDiv.textContent = "✅ Publié !";
-          msgDiv.className = "msg ok";
-          
-          document.getElementById("caption").value = "";
-          document.getElementById("mediaFile").value = "";
-          
+          pubMsg.className = "msg muted";
+          pubMsg.textContent = "";
+
+          const file = mediaFileEl.files[0];
+          const caption = (captionEl.value || "").trim();
+
+          if (!file) throw new Error("Choisis une image ou une vidéo.");
+
+          const mediaType = fileMediaType(file);
+          if (!mediaType) throw new Error("Type média non supporté.");
+
+          const user = await getSessionUser();
+          if (!user) throw new Error("Connecte-toi d’abord.");
+
+          const profile = await getMyProfile();
+          if (!profile?.username) throw new Error("Profil incomplet.");
+
+          pubMsg.textContent = "Upload média...";
+
+          const bucket = "media";
+          const ext = (file.name.split('.').pop() || (mediaType === "image" ? "jpg" : "mp4")).toLowerCase();
+          const uid = Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+          const path = `public/${user.id}/${uid}.${ext}`;
+
+          const { error: upErr } = await supabase.storage.from(bucket).upload(path, file, { upsert: false });
+          if (upErr) throw upErr;
+
+          const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(path);
+          const publicUrl = urlData.publicUrl;
+
+          const { error: insErr } = await supabase.from("posts").insert({
+            user_id: user.id,
+            user_username: profile.username,
+            caption: caption || null,
+            media_url: publicUrl,
+            media_type: mediaType
+          });
+
+          if (insErr) throw insErr;
+
+          captionEl.value = "";
+          mediaFileEl.value = "";
+          pubMsg.className = "msg ok";
+          pubMsg.textContent = "Publié ✅";
+
           await loadFeed();
-          
-        } catch(e) {
-          msgDiv.textContent = e.message;
-          msgDiv.className = "msg err";
+        } catch (e) {
+          pubMsg.className = "msg err";
+          pubMsg.textContent = e?.message || String(e);
         }
       });
 
       // Écouter les changements d'authentification
       supabase.auth.onAuthStateChange(async (event, session) => {
+        currentUser = null;
+        currentProfile = null;
+        
         if (session?.user) {
-          await updateUIForUser(session.user);
+          setLoggedUI(true);
+          const profile = await getMyProfile();
+          authBadge.textContent = `Connecté : ${profile?.username || session.user.email}`;
+          await loadFeed();
         } else {
-          await updateUIForUser(null);
+          setLoggedUI(false);
+          authBadge.textContent = "Connecte-toi pour interagir";
+          await loadFeed();
         }
-        await loadFeed();
       });
 
       // Initialisation
-      (async () => {
-        const user = await getSessionUser();
-        await updateUIForUser(user);
-        await loadFeed();
-      })();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        currentUser = user;
+        const profile = await getMyProfile();
+        if (profile) currentProfile = profile;
+        authBadge.textContent = `Connecté : ${profile?.username || user.email}`;
+        setLoggedUI(true);
+      } else {
+        authBadge.textContent = "Connecte-toi pour interagir";
+        setLoggedUI(false);
+      }
+      
+      await loadFeed();
     });
   </script>
 </body>
