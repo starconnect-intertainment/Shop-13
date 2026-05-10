@@ -223,16 +223,6 @@
       margin-top: 12px;
     }
 
-    .pill{
-      padding: 7px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,.14);
-      background: rgba(0,0,0,.16);
-      font-size: 13px;
-      font-weight: 950;
-      color: var(--muted);
-    }
-
     .likeBtn{
       width:auto;
       padding: 10px 14px;
@@ -241,6 +231,7 @@
       background: rgba(0,0,0,.16);
       color: var(--muted);
       font-weight: 950;
+      cursor: pointer;
     }
     .likeBtn.liked{
       background: rgba(239,68,68,.18);
@@ -286,7 +277,7 @@
     .spacer{ height:8px; }
 
     .loading { text-align: center; padding: 40px; color: var(--muted); }
-    .error-msg { color: #FF8A8A; text-align: center; padding: 20px; }
+    .error-msg { color: #FF8A8A; text-align: center; padding: 20px; font-weight: 900; }
   </style>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -351,7 +342,7 @@
 
           <div style="display:flex; gap:10px; margin-top:12px;">
             <button class="btn-secondary" id="btnReset" style="flex:1;">Mot de passe oublié</button>
-            <button class="btn-danger hide" id="btnLogout" style="flex:1;">Déconnexion</button>
+            <button class="btn-danger" id="btnLogout" style="flex:1;">Déconnexion</button>
           </div>
 
           <div id="loginMsg" class="msg muted"></div>
@@ -398,6 +389,9 @@
       const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind0c21la296ZnBlYWl4cW9idWlrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4Mjk2MjcsImV4cCI6MjA5MzQwNTYyN30.AUm9renaVr3A8pzDNx5Dm_f4XJrhkIKlnUePm6Gl5S0";
       const redirectTo = "https://starconnect-intertainment.github.io/Shop-13/";
 
+      const authBadge = document.getElementById("authBadge");
+      const feed = document.getElementById("feed");
+
       let supabase = null;
       try {
         supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
@@ -405,13 +399,9 @@
         });
       } catch (e) {
         console.error("Erreur chargement Supabase:", e);
-        document.getElementById('feed').innerHTML =
-          '<div class="error-msg">⚠️ Erreur: Impossible de charger Supabase.</div>';
+        feed.innerHTML = '<div class="error-msg">⚠️ Erreur: impossible de charger Supabase.</div>';
         return;
       }
-
-      const authBadge = document.getElementById("authBadge");
-      const feed = document.getElementById("feed");
 
       const signupForm = document.getElementById("signupForm");
       const btnSignup = document.getElementById("btnSignup");
@@ -483,17 +473,16 @@
         return user || null;
       }
 
-      // Likes + Comments helpers
-      async function getLikeState(postId, userId) {
-        const { data: maybeRow, error } = await supabase
-          .from("likes")
-          .select("*")
-          .eq("post_id", postId)
-          .eq("user_id", userId)
-          .maybeSingle();
-
-        if (error) return { liked: false, count: 0, error };
-        return { liked: !!maybeRow, count: 0 };
+      async function getLikeRow(postId, userIdOrNull) {
+        if (userIdOrNull === null) {
+          const { data, error } = await supabase.from("likes").select("post_id").eq("post_id", postId).is("user_id", null).maybeSingle();
+          if (error) return { row: null, error };
+          return { row: data, error: null };
+        } else {
+          const { data, error } = await supabase.from("likes").select("post_id").eq("post_id", postId).eq("user_id", userIdOrNull).maybeSingle();
+          if (error) return { row: null, error };
+          return { row: data, error: null };
+        }
       }
 
       async function countLikes(postId) {
@@ -509,7 +498,7 @@
       async function loadComments(postId, limit = 50) {
         const { data, error } = await supabase
           .from("comments")
-          .select("id, user_username, text, created_at")
+          .select("id, user_username, content, created_at")
           .eq("post_id", postId)
           .order("created_at", { ascending: true })
           .limit(limit);
@@ -518,80 +507,40 @@
         return data || [];
       }
 
-      // ✅ CHANGEMENT ICI: toggleLike accepte aussi l'anonyme (user_id = null)
       async function toggleLike(postId) {
         const user = await getSessionUser();
+        const userIdOrNull = user ? user.id : null;
 
-        const userId = user ? user.id : null;
-
-        // check existence
-        let existing = null;
-
-        // Pour anon: tester user_id IS NULL
-        const { data: existingRow, error: selErr } = await supabase
-          .from("likes")
-          .select("post_id")
-          .eq("post_id", postId)
-          .maybeSingle()
-          .limit(1);
-
+        const { row, error: selErr } = await getLikeRow(postId, userIdOrNull);
         if (selErr) throw selErr;
 
-        // On doit filtrer selon le mode:
-        // - connecté: user_id = auth.uid()
-        // - anonyme: user_id IS NULL
-        if (user) {
-          const { data: exactRow, error: selErr2 } = await supabase
-            .from("likes")
-            .select("post_id")
-            .eq("post_id", postId)
-            .eq("user_id", userId)
-            .maybeSingle();
-          if (selErr2) throw selErr2;
-          existing = exactRow;
-        } else {
-          const { data: anonRow, error: selErr2 } = await supabase
-            .from("likes")
-            .select("post_id")
-            .eq("post_id", postId)
-            .is("user_id", null)
-            .maybeSingle();
-          if (selErr2) throw selErr2;
-          existing = anonRow;
-        }
-
-        if (existing) {
-          // unlike
-          const { error } = await supabase
-            .from("likes")
-            .delete()
-            .eq("post_id", postId)
-            .modify(q => {
-              if (userId === null) q.is("user_id", null);
-              else q.eq("user_id", userId);
-            });
-
-          if (error) throw error;
+        if (row) {
+          let query = supabase.from("likes").delete().eq("post_id", postId);
+          if (userIdOrNull === null) {
+            query = query.is("user_id", null);
+          } else {
+            query = query.eq("user_id", userIdOrNull);
+          }
+          const { error: delErr } = await query;
+          if (delErr) throw delErr;
           return { liked: false };
-        } else {
-          // like
-          const payload = { post_id: postId, user_id: userId }; // user_id = null => anon
-          const { error } = await supabase
-            .from("likes")
-            .insert(payload);
-
-          if (error) throw error;
-          return { liked: true };
         }
+
+        const { error: insErr } = await supabase.from("likes").insert({
+          post_id: postId,
+          user_id: userIdOrNull
+        });
+
+        if (insErr) throw insErr;
+        return { liked: true };
       }
 
-      // ✅ CHANGEMENT ICI: addComment accepte aussi l'anonyme
       async function addComment(postId, text) {
         const clean = (text || "").trim();
         if (!clean) throw new Error("Écris un commentaire.");
 
         const user = await getSessionUser();
-        const userId = user ? user.id : null;
+        const userIdOrNull = user ? user.id : null;
 
         let user_username = "Anonyme";
         if (user) {
@@ -599,22 +548,17 @@
           user_username = profile?.username || user.email || "Utilisateur";
         }
 
-        const payload = {
+        const { error } = await supabase.from("comments").insert({
           post_id: postId,
-          user_id: userId,           // null pour anonyme
+          user_id: userIdOrNull,
           user_username,
-          text: clean
-        };
-
-        const { error } = await supabase
-          .from("comments")
-          .insert(payload);
+          content: clean
+        });
 
         if (error) throw error;
         return true;
       }
 
-      // Feed
       async function loadFeed() {
         feed.innerHTML = '<div class="loading">Chargement des publications...</div>';
 
@@ -633,7 +577,7 @@
           }
 
           const user = await getSessionUser();
-          const userId = user?.id || null;
+          const userIdOrNull = user ? user.id : null;
 
           feed.innerHTML = "";
 
@@ -669,14 +613,14 @@
               ${mediaHtml}
 
               <div class="actions">
-                <button class="likeBtn" id="${likeBtnId}" data-post-id="${escapeHtml(p.id)}" type="button">
+                <button class="likeBtn" id="${likeBtnId}" type="button">
                   ❤️ <span id="${likesCountElId}">...</span>
                 </button>
               </div>
 
               <div class="commentBox">
                 <div class="commentRow">
-                  <input id="${commentInputId}" placeholder="${user ? 'Écrire un commentaire...' : 'Écrire un commentaire (anonyme)...'}" />
+                  <input id="${commentInputId}" placeholder="${user ? 'Écrire un commentaire...' : 'Connectez-vous pour commenter'}" />
                   <button class="btn-secondary" type="button" id="btnComment-${p.id}" style="flex:0 0 auto; width:auto; padding:10px 14px;">
                     Envoyer
                   </button>
@@ -689,18 +633,21 @@
             feed.appendChild(card);
 
             const likeBtn = document.getElementById(likeBtnId);
+
             likeBtn.addEventListener("click", async () => {
               try {
+                const currentUser = await getSessionUser();
+                if (!currentUser) {
+                  alert("Connectez-vous pour liker");
+                  return;
+                }
+                
                 await toggleLike(p.id);
-
                 const count = await countLikes(p.id);
                 document.getElementById(likesCountElId).textContent = String(count);
 
-                // ✅ état like seulement si connecté (sinon on ne sait pas sans refaire une query “anon”)
-                if (userId) {
-                  const { liked } = await getLikeState(p.id, userId);
-                  likeBtn.classList.toggle("liked", !!liked);
-                }
+                const { row } = await getLikeRow(p.id, currentUser.id);
+                likeBtn.classList.toggle("liked", !!row);
               } catch (e) {
                 alert(e?.message || String(e));
               }
@@ -709,10 +656,14 @@
             const btnComment = document.getElementById(`btnComment-${p.id}`);
             btnComment.addEventListener("click", async () => {
               try {
+                const currentUser = await getSessionUser();
+                if (!currentUser) {
+                  alert("Connectez-vous pour commenter");
+                  return;
+                }
+                
                 const input = document.getElementById(commentInputId);
-                const text = input.value;
-
-                await addComment(p.id, text);
+                await addComment(p.id, input.value);
                 input.value = "";
 
                 const comments = await loadComments(p.id);
@@ -721,7 +672,7 @@
                   ? comments.map(c => `
                     <div class="commentItem">
                       <div class="u">${escapeHtml(c.user_username || 'Utilisateur')}</div>
-                      <div class="c">${escapeHtml(c.text)}</div>
+                      <div class="c">${escapeHtml(c.content || '')}</div>
                       <div class="t">${c.created_at ? escapeHtml(new Date(c.created_at).toLocaleString()) : ''}</div>
                     </div>
                   `).join("")
@@ -731,35 +682,39 @@
               }
             });
 
+            // Initial render likes + comments
             (async () => {
               try {
                 const count = await countLikes(p.id);
-                document.getElementById(likesCountElId).textContent = String(count);
+                const countSpan = document.getElementById(likesCountElId);
+                if (countSpan) countSpan.textContent = String(count);
 
-                if (userId) {
-                  const { liked } = await getLikeState(p.id, userId);
-                  likeBtn.classList.toggle("liked", !!liked);
+                if (userIdOrNull) {
+                  const { row } = await getLikeRow(p.id, userIdOrNull);
+                  likeBtn.classList.toggle("liked", !!row);
                 }
 
                 const comments = await loadComments(p.id);
                 const commentsBox = document.getElementById(commentsBoxId);
-                commentsBox.innerHTML = comments.length
-                  ? comments.map(c => `
-                    <div class="commentItem">
-                      <div class="u">${escapeHtml(c.user_username || 'Utilisateur')}</div>
-                      <div class="c">${escapeHtml(c.text)}</div>
-                      <div class="t">${c.created_at ? escapeHtml(new Date(c.created_at).toLocaleString()) : ''}</div>
-                    </div>
-                  `).join("")
-                  : `<div style="color:var(--muted); font-weight:850; margin-top:10px;">Pas encore de commentaires.</div>`;
+                if (commentsBox) {
+                  commentsBox.innerHTML = comments.length
+                    ? comments.map(c => `
+                      <div class="commentItem">
+                        <div class="u">${escapeHtml(c.user_username || 'Utilisateur')}</div>
+                        <div class="c">${escapeHtml(c.content || '')}</div>
+                        <div class="t">${c.created_at ? escapeHtml(new Date(c.created_at).toLocaleString()) : ''}</div>
+                      </div>
+                    `).join("")
+                    : `<div style="color:var(--muted); font-weight:850; margin-top:10px;">Pas encore de commentaires.</div>`;
+                }
               } catch (err) {
-                console.warn("Extras (likes/comments) failed:", err);
+                console.warn("Erreur chargement likes/comments:", err);
               }
             })();
           }
         } catch (error) {
           console.error("Erreur chargement feed:", error);
-          feed.innerHTML = `<div class="error-msg">⚠️ Erreur: ${escapeHtml(error.message || String(error))}</div>`;
+          feed.innerHTML = `<div class="error-msg">⚠️ Erreur: ${escapeHtml(error?.message || String(error))}</div>`;
         }
       }
 
@@ -829,14 +784,18 @@
           const { error } = await supabase.auth.signInWithPassword({ email, password });
           if (error) throw error;
 
+          // Attendre que la session soit établie
+          await new Promise(resolve => setTimeout(resolve, 500));
+          
           const profile = await getMyProfile();
           authBadge.textContent = `Connecté : ${profile?.username || email}`;
 
           loginMsg.className = "msg ok";
           loginMsg.textContent = "Connecté ✅";
+          
           setLoggedUI(true);
-
-          alert("Connexion réussie !");
+          await loadFeed();
+          
         }catch(e){
           loginMsg.className = "msg err";
           loginMsg.textContent = e?.message || String(e);
@@ -847,7 +806,7 @@
         await supabase.auth.signOut();
         authBadge.textContent = "Connecte-toi pour interagir";
         setLoggedUI(false);
-        loadFeed();
+        await loadFeed();
       });
 
       btnReset.addEventListener("click", async () => {
@@ -913,27 +872,33 @@
           pubMsg.className = "msg ok";
           pubMsg.textContent = "Publié ✅";
 
-          loadFeed();
+          await loadFeed();
         }catch(e){
           pubMsg.className = "msg err";
           pubMsg.textContent = e?.message || String(e);
         }
       });
 
-      supabase.auth.onAuthStateChange(async (_event, session) => {
+      // Écouter les changements d'authentification
+      supabase.auth.onAuthStateChange(async (event, session) => {
         if (session?.user) {
           setLoggedUI(true);
           const profile = await getMyProfile();
           authBadge.textContent = `Connecté : ${profile?.username || session.user.email}`;
+          await loadFeed();
         } else {
           setLoggedUI(false);
           authBadge.textContent = "Connecte-toi pour interagir";
+          await loadFeed();
         }
       });
 
+      // Initial load
       loadFeed();
 
-      supabase.auth.getUser().then(async ({ data: { user } }) => {
+      // Vérification initiale de l'utilisateur
+      (async () => {
+        const { data: { user } } = await supabase.auth.getUser();
         if (user) {
           const profile = await getMyProfile();
           authBadge.textContent = `Connecté : ${profile?.username || user.email}`;
@@ -942,10 +907,7 @@
           authBadge.textContent = "Connecte-toi pour interagir";
           setLoggedUI(false);
         }
-      }).catch(() => {
-        authBadge.textContent = "Connecte-toi pour interagir";
-        setLoggedUI(false);
-      });
+      })();
     });
   </script>
 </body>
