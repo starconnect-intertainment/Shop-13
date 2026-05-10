@@ -385,7 +385,7 @@
     import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
     const SUPABASE_URL = "https://wtsmekozfpeaixqobuik.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind0c21la296ZnBlYWl4cW9idWlrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4Mjk2MjcsImV4cCI6MjA5MzQwNTYyN30.AUm9renaVr3A8pzDNx5Dm_f4XJrhkIKlnUePm6Gl5S0";
+    const SUPABASE_ANON_KEY = "REMPLACE_ANNON_KEY";
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
       auth: { persistSession: true, autoRefreshToken: true }
@@ -397,12 +397,16 @@
     const feed = $("feed");
 
     const signupForm = $("signupForm");
+    const loginForm = $("loginForm");
+
     const btnSignup = $("btnSignup");
     const signupMsg = $("signupMsg");
 
     const btnLogin = $("btnLogin");
     const loginMsg = $("loginMsg");
+
     const btnLogout = $("btnLogout");
+
     const btnReset = $("btnReset");
 
     const afterAuth = $("afterAuth");
@@ -423,6 +427,7 @@
     const li_email = $("li_email");
     const li_password = $("li_password");
 
+    // =============== helpers ===============
     function escapeHtml(s) {
       return String(s ?? "")
         .replaceAll("&","&amp;")
@@ -457,12 +462,15 @@
       return data;
     }
 
+    // Cooldown anti "email rate limit exceeded"
     let signupCooldownUntil = 0;
     let resetCooldownUntil = 0;
     const COOLDOWN_MS = 60000;
+
     function nowMs(){ return Date.now(); }
     function formatSeconds(s){ return s <= 1 ? "1s" : `${s}s`; }
 
+    // =============== data loading ===============
     async function loadFeed() {
       feed.innerHTML = "";
 
@@ -541,6 +549,7 @@
 
         feed.appendChild(card);
 
+        // comments load
         const { data: comments, error: cErr } = await supabase
           .from("comments")
           .select("*")
@@ -562,6 +571,7 @@
           list.appendChild(it);
         }
 
+        // like toggle
         card.querySelector(`[data-like="${p.id}"]`).addEventListener("click", async () => {
           try{
             const { data: { user } } = await supabase.auth.getUser();
@@ -589,6 +599,7 @@
           }
         });
 
+        // comment send
         card.querySelector(`[data-comment-send="${p.id}"]`).addEventListener("click", async () => {
           try{
             const { data: { user } } = await supabase.auth.getUser();
@@ -605,7 +616,7 @@
                 post_id: p.id,
                 user_id: user.id,
                 user_username: profile?.username || "Utilisateur",
-                content: content
+                content
               });
 
             if (insErr) throw insErr;
@@ -619,6 +630,7 @@
       }
     }
 
+    // =============== actions ===============
     btnSignup.addEventListener("click", async () => {
       if (nowMs() < signupCooldownUntil) {
         signupMsg.className = "msg err";
@@ -639,6 +651,7 @@
       if (password.length < 6) { signupMsg.className="msg err"; signupMsg.textContent="Mot de passe min 6 caractères."; return; }
 
       signupCooldownUntil = nowMs() + COOLDOWN_MS;
+
       signupMsg.className = "msg muted";
       signupMsg.textContent = "Création du compte...";
 
@@ -701,6 +714,7 @@
       if (!email) return alert("Entre d’abord ton email.");
 
       resetCooldownUntil = nowMs() + COOLDOWN_MS;
+
       loginMsg.className = "msg muted";
       loginMsg.textContent = "Envoi du lien de reset...";
 
@@ -719,10 +733,12 @@
     btnLogout.addEventListener("click", async () => {
       await supabase.auth.signOut();
       authBadge.textContent = "Connecte-toi pour poster";
+
       signupForm.classList.remove("hide");
       afterAuth.classList.add("hide");
       notAuth.classList.remove("hide");
       btnLogout.classList.add("hide");
+
       feed.innerHTML = "";
       pubMsg.className = "msg muted";
       pubMsg.textContent = "";
@@ -739,13 +755,13 @@
         if (!file) throw new Error("Choisis une image ou une vidéo.");
 
         const mediaType = fileMediaType(file);
-        if (!mediaType) throw new Error("Type média non supporté.");
+        if (!mediaType) throw new Error("Type média non supporté. Utilise image/* ou video/*");
 
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) throw new Error("Connecte-toi d’abord.");
 
         const profile = await getMyProfile();
-        if (!profile?.username) throw new Error("Profil incomplet.");
+        if (!profile?.username) throw new Error("Profil incomplet. Mets ton username à l’inscription.");
 
         pubMsg.textContent = "Upload média...";
 
@@ -783,6 +799,7 @@
       }
     });
 
+    // =============== auth bootstrap ===============
     supabase.auth.onAuthStateChange(async (_event, session) => {
       if (session?.user) {
         btnLogout.classList.remove("hide");
@@ -792,6 +809,7 @@
 
         const profile = await getMyProfile().catch(() => null);
         authBadge.textContent = `Connecté : ${profile?.username || session.user.email}`;
+
         await loadFeed();
       } else {
         btnLogout.classList.add("hide");
@@ -803,6 +821,7 @@
       }
     });
 
+    // initial check
     (async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
