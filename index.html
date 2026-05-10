@@ -223,16 +223,6 @@
       margin-top: 12px;
     }
 
-    .pill{
-      padding: 7px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,.14);
-      background: rgba(0,0,0,.16);
-      font-size: 13px;
-      font-weight: 950;
-      color: var(--muted);
-    }
-
     .likeBtn{
       width:auto;
       padding: 10px 14px;
@@ -483,17 +473,19 @@
         return user || null;
       }
 
-      // Likes + Comments helpers
-      async function getLikeState(postId, userId) {
-        const { data: maybeRow, error } = await supabase
+      async function getLikeRow(postId, userIdOrNull) {
+        // userIdOrNull = null => anonyme => IS NULL
+        const q = supabase
           .from("likes")
-          .select("*")
-          .eq("post_id", postId)
-          .eq("user_id", userId)
-          .maybeSingle();
+          .select("post_id")
+          .eq("post_id", postId);
 
-        if (error) return { liked: false, count: 0, error };
-        return { liked: !!maybeRow, count: 0 };
+        const { data, error } = userIdOrNull === null
+          ? await q.is("user_id", null).maybeSingle()
+          : await q.eq("user_id", userIdOrNull).maybeSingle();
+
+        if (error) return { row: null, error };
+        return { row: data, error: null };
       }
 
       async function countLikes(postId) {
@@ -507,9 +499,10 @@
       }
 
       async function loadComments(postId, limit = 50) {
+        // ✅ colonne comments.content
         const { data, error } = await supabase
           .from("comments")
-          .select("id, user_username, text, created_at")
+          .select("id, user_username, content, created_at")
           .eq("post_id", postId)
           .order("created_at", { ascending: true })
           .limit(limit);
@@ -518,80 +511,44 @@
         return data || [];
       }
 
-      // ✅ CHANGEMENT ICI: toggleLike accepte aussi l'anonyme (user_id = null)
       async function toggleLike(postId) {
         const user = await getSessionUser();
+        const userIdOrNull = user ? user.id : null;
 
-        const userId = user ? user.id : null;
-
-        // check existence
-        let existing = null;
-
-        // Pour anon: tester user_id IS NULL
-        const { data: existingRow, error: selErr } = await supabase
-          .from("likes")
-          .select("post_id")
-          .eq("post_id", postId)
-          .maybeSingle()
-          .limit(1);
-
+        const { row, error: selErr } = await getLikeRow(postId, userIdOrNull);
         if (selErr) throw selErr;
 
-        // On doit filtrer selon le mode:
-        // - connecté: user_id = auth.uid()
-        // - anonyme: user_id IS NULL
-        if (user) {
-          const { data: exactRow, error: selErr2 } = await supabase
-            .from("likes")
-            .select("post_id")
-            .eq("post_id", postId)
-            .eq("user_id", userId)
-            .maybeSingle();
-          if (selErr2) throw selErr2;
-          existing = exactRow;
-        } else {
-          const { data: anonRow, error: selErr2 } = await supabase
-            .from("likes")
-            .select("post_id")
-            .eq("post_id", postId)
-            .is("user_id", null)
-            .maybeSingle();
-          if (selErr2) throw selErr2;
-          existing = anonRow;
-        }
+        const { error: delErr } = row
+          ? await supabase
+              .from("likes")
+              .delete()
+              .eq("post_id", postId)
+              .modify(q => {
+                if (userIdOrNull === null) q.is("user_id", null);
+                else q.eq("user_id", userIdOrNull);
+              })
+          : { error: null };
 
-        if (existing) {
-          // unlike
-          const { error } = await supabase
-            .from("likes")
-            .delete()
-            .eq("post_id", postId)
-            .modify(q => {
-              if (userId === null) q.is("user_id", null);
-              else q.eq("user_id", userId);
-            });
+        if (delErr) throw delErr;
 
-          if (error) throw error;
-          return { liked: false };
-        } else {
-          // like
-          const payload = { post_id: postId, user_id: userId }; // user_id = null => anon
-          const { error } = await supabase
-            .from("likes")
-            .insert(payload);
+        if (row) return { liked: false };
 
-          if (error) throw error;
-          return { liked: true };
-        }
+        // insert
+        const { error: insErr } = await supabase.from("likes").insert({
+          post_id: postId,
+          user_id: userIdOrNull
+        });
+
+        if (insErr) throw insErr;
+        return { liked: true };
       }
 
-      // ✅ CHANGEMENT ICI: addComment accepte aussi l'anonyme
       async function addComment(postId, text) {
         const clean = (text || "").trim();
         if (!clean) throw new Error("Écris un commentaire.");
 
         const user = await getSessionUser();
-        const userId = user ? user.id : null;
+        const userIdOrNull = user ? user.id : null;
 
         let user_username = "Anonyme";
         if (user) {
@@ -599,22 +556,17 @@
           user_username = profile?.username || user.email || "Utilisateur";
         }
 
-        const payload = {
+        const { error } = await supabase.from("comments").insert({
           post_id: postId,
-          user_id: userId,           // null pour anonyme
+          user_id: userIdOrNull,     // ✅ null possible si DB ok
           user_username,
-          text: clean
-        };
-
-        const { error } = await supabase
-          .from("comments")
-          .insert(payload);
+          content: clean             // ✅ content (pas text)
+        });
 
         if (error) throw error;
         return true;
       }
 
-      // Feed
       async function loadFeed() {
         feed.innerHTML = '<div class="loading">Chargement des publications...</div>';
 
@@ -633,7 +585,7 @@
           }
 
           const user = await getSessionUser();
-          const userId = user?.id || null;
+          const userIdOrNull = user ? user.id : null;
 
           feed.innerHTML = "";
 
@@ -669,7 +621,7 @@
               ${mediaHtml}
 
               <div class="actions">
-                <button class="likeBtn" id="${likeBtnId}" data-post-id="${escapeHtml(p.id)}" type="button">
+                <button class="likeBtn" id="${likeBtnId}" type="button">
                   ❤️ <span id="${likesCountElId}">...</span>
                 </button>
               </div>
@@ -688,6 +640,7 @@
 
             feed.appendChild(card);
 
+            // Like
             const likeBtn = document.getElementById(likeBtnId);
             likeBtn.addEventListener("click", async () => {
               try {
@@ -696,16 +649,17 @@
                 const count = await countLikes(p.id);
                 document.getElementById(likesCountElId).textContent = String(count);
 
-                // ✅ état like seulement si connecté (sinon on ne sait pas sans refaire une query “anon”)
-                if (userId) {
-                  const { liked } = await getLikeState(p.id, userId);
-                  likeBtn.classList.toggle("liked", !!liked);
+                // update state button (connecté seulement pour le visuel; anonyme visuel possible mais pas indispensable)
+                if (userIdOrNull) {
+                  const { row } = await getLikeRow(p.id, userIdOrNull);
+                  likeBtn.classList.toggle("liked", !!row);
                 }
               } catch (e) {
                 alert(e?.message || String(e));
               }
             });
 
+            // Comment
             const btnComment = document.getElementById(`btnComment-${p.id}`);
             btnComment.addEventListener("click", async () => {
               try {
@@ -721,7 +675,7 @@
                   ? comments.map(c => `
                     <div class="commentItem">
                       <div class="u">${escapeHtml(c.user_username || 'Utilisateur')}</div>
-                      <div class="c">${escapeHtml(c.text)}</div>
+                      <div class="c">${escapeHtml(c.content || '')}</div>
                       <div class="t">${c.created_at ? escapeHtml(new Date(c.created_at).toLocaleString()) : ''}</div>
                     </div>
                   `).join("")
@@ -731,14 +685,15 @@
               }
             });
 
+            // Initial load likes + comments
             (async () => {
               try {
                 const count = await countLikes(p.id);
                 document.getElementById(likesCountElId).textContent = String(count);
 
-                if (userId) {
-                  const { liked } = await getLikeState(p.id, userId);
-                  likeBtn.classList.toggle("liked", !!liked);
+                if (userIdOrNull) {
+                  const { row } = await getLikeRow(p.id, userIdOrNull);
+                  likeBtn.classList.toggle("liked", !!row);
                 }
 
                 const comments = await loadComments(p.id);
@@ -747,7 +702,7 @@
                   ? comments.map(c => `
                     <div class="commentItem">
                       <div class="u">${escapeHtml(c.user_username || 'Utilisateur')}</div>
-                      <div class="c">${escapeHtml(c.text)}</div>
+                      <div class="c">${escapeHtml(c.content || '')}</div>
                       <div class="t">${c.created_at ? escapeHtml(new Date(c.created_at).toLocaleString()) : ''}</div>
                     </div>
                   `).join("")
