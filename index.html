@@ -1,19 +1,13 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-  <title>VTC Mahajanga - Application Complète</title>
-  
-  <!-- Font Awesome & Leaflet -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  
-  <!-- Supabase JS Client -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1, viewport-fit=cover" />
+  <title>🇯🇲 HOLDEST • CYBER SOCIAL ⭐</title>
+
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,600;14..32,700;14..32,800&display=swap');
+    
     * {
       margin: 0;
       padding: 0;
@@ -21,1410 +15,1189 @@
     }
 
     body {
-      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(135deg, #0a0f1a 0%, #0b1220 100%);
-      color: #e7eefc;
+      font-family: 'Inter', sans-serif;
+      background: #0a0a0f;
+      background-image: 
+        repeating-linear-gradient(0deg, rgba(0, 255, 255, 0.02) 0px, rgba(0, 255, 255, 0.02) 1px, transparent 1px, transparent 2px),
+        repeating-linear-gradient(90deg, rgba(0, 255, 255, 0.02) 0px, rgba(0, 255, 255, 0.02) 1px, transparent 1px, transparent 2px);
       min-height: 100vh;
+      color: #ffffff;
     }
 
-    .app {
-      max-width: 1300px;
+    .glow-text {
+      text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+    }
+
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(20px);
+      background: rgba(5, 5, 10, 0.85);
+      border-bottom: 1px solid rgba(0, 255, 255, 0.3);
+      box-shadow: 0 0 20px rgba(0, 255, 255, 0.1);
+    }
+
+    .nav-container {
+      max-width: 1400px;
       margin: 0 auto;
-      padding: 16px;
-    }
-
-    /* Header */
-    header {
-      background: rgba(17, 26, 45, 0.95);
-      backdrop-filter: blur(12px);
-      border-radius: 24px;
-      padding: 12px 20px;
-      margin-bottom: 16px;
+      padding: 16px 24px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      border: 1px solid rgba(59, 130, 246, 0.3);
-      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      flex-wrap: wrap;
+      gap: 12px;
     }
 
-    .brand {
+    .logo {
       display: flex;
       align-items: center;
       gap: 12px;
-      cursor: pointer;
-      font-size: 18px;
-      font-weight: bold;
+      font-size: 24px;
+      font-weight: 800;
+      background: linear-gradient(135deg, #00ffff, #ff00ff);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
     }
 
-    .brand i {
-      font-size: 28px;
-      color: #3b82f6;
-    }
-
-    .actions {
-      display: flex;
-      gap: 16px;
-    }
-
-    .icon-btn {
-      cursor: pointer;
-      padding: 8px 12px;
-      border-radius: 40px;
-      transition: all 0.2s;
-      background: rgba(59, 130, 246, 0.1);
-    }
-
-    .icon-btn:hover {
-      background: rgba(59, 130, 246, 0.3);
-      transform: scale(1.05);
-    }
-
-    /* Navigation */
-    nav {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-bottom: 20px;
-      background: rgba(17, 26, 45, 0.7);
-      backdrop-filter: blur(10px);
-      border-radius: 20px;
-      padding: 10px;
-    }
-
-    .tab {
-      flex: 1;
-      min-width: 90px;
-      padding: 10px 16px;
-      background: transparent;
-      border: 1px solid rgba(59, 130, 246, 0.3);
-      border-radius: 40px;
-      color: #e7eefc;
-      cursor: pointer;
-      transition: all 0.2s;
+    .logo-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #00ffff, #ff00ff);
+      border-radius: 12px;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
-      font-size: 13px;
+      font-size: 20px;
+      box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
     }
 
-    .tab:hover {
-      background: rgba(59, 130, 246, 0.15);
-      border-color: #3b82f6;
-    }
-
-    .tab.active {
-      background: #3b82f6;
-      border-color: #3b82f6;
-      box-shadow: 0 0 12px rgba(59, 130, 246, 0.5);
-    }
-
-    /* Pages */
-    .page {
-      display: none;
-      animation: fadeIn 0.3s ease;
-    }
-
-    .page.active {
-      display: block;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* Cards */
-    .grid-2 {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-      gap: 20px;
-    }
-
-    .card {
-      background: rgba(17, 26, 45, 0.8);
-      backdrop-filter: blur(10px);
-      border-radius: 20px;
-      padding: 20px;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      transition: transform 0.2s;
-    }
-
-    .card:hover {
-      transform: translateY(-2px);
-    }
-
-    .card h2 {
-      font-size: 18px;
-      margin-bottom: 16px;
+    .user-badge {
       display: flex;
       align-items: center;
-      gap: 8px;
-      border-left: 3px solid #3b82f6;
-      padding-left: 12px;
+      gap: 12px;
+      padding: 8px 18px;
+      background: rgba(0, 255, 255, 0.1);
+      border: 1px solid rgba(0, 255, 255, 0.3);
+      border-radius: 40px;
+      backdrop-filter: blur(10px);
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .user-badge:hover {
+      background: rgba(0, 255, 255, 0.2);
+      border-color: cyan;
     }
 
-    /* Form elements */
-    .field {
-      margin-bottom: 14px;
+    .user-avatar {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, #00ffff, #ff00ff);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 32px 24px;
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 24px;
+    }
+
+    @media (max-width: 900px) {
+      .container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .filter-bar {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+      background: rgba(10, 10, 20, 0.7);
+      backdrop-filter: blur(10px);
+      padding: 12px 20px;
+      border-radius: 60px;
+      border: 1px solid rgba(0, 255, 255, 0.2);
+    }
+    .filter-btn {
+      background: none;
+      border: none;
+      padding: 8px 20px;
+      border-radius: 40px;
+      color: #aaa;
+      cursor: pointer;
+      font-weight: 600;
+      transition: 0.2s;
+    }
+    .filter-btn.active {
+      background: linear-gradient(135deg, #00ffff, #0088ff);
+      color: #000;
+    }
+    .filter-btn:hover {
+      color: cyan;
+    }
+
+    .cyber-card {
+      background: rgba(10, 10, 20, 0.7);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(0, 255, 255, 0.3);
+      border-radius: 20px;
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .cyber-card:hover {
+      border-color: rgba(0, 255, 255, 0.7);
+      box-shadow: 0 0 25px rgba(0, 255, 255, 0.2);
+    }
+
+    .card-header {
+      padding: 20px 24px;
+      background: linear-gradient(135deg, rgba(0, 255, 255, 0.1), rgba(255, 0, 255, 0.05));
+      border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+    }
+
+    .card-header h2 {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+
+    .card-body {
+      padding: 24px;
+    }
+
+    .input-group {
+      margin-bottom: 20px;
     }
 
     label {
       display: block;
       font-size: 12px;
-      color: #9bb0d2;
-      margin-bottom: 6px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: rgba(0, 255, 255, 0.7);
+      margin-bottom: 8px;
     }
 
-    input, select, textarea {
+    input, textarea, select {
       width: 100%;
-      padding: 12px;
-      border-radius: 14px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      background: rgba(0, 0, 0, 0.3);
-      color: #e7eefc;
-      font-size: 14px;
-      outline: none;
-      transition: all 0.2s;
-    }
-
-    input:focus, select:focus, textarea:focus {
-      border-color: #3b82f6;
+      padding: 12px 16px;
       background: rgba(0, 0, 0, 0.5);
-    }
-
-    button {
-      padding: 10px 20px;
-      border-radius: 40px;
-      border: none;
-      cursor: pointer;
+      border: 1px solid rgba(0, 255, 255, 0.3);
+      border-radius: 12px;
+      color: white;
       font-size: 14px;
-      font-weight: 500;
       transition: all 0.2s;
     }
 
-    button.primary {
-      background: #3b82f6;
-      color: white;
+    input:focus, textarea:focus, select:focus {
+      outline: none;
+      border-color: #00ffff;
+      box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
     }
 
-    button.primary:hover {
-      background: #2563eb;
-      transform: scale(1.02);
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
 
-    button.secondary {
-      background: rgba(255, 255, 255, 0.1);
-      color: #e7eefc;
-      border: 1px solid rgba(255, 255, 255, 0.2);
+    .btn-primary {
+      background: linear-gradient(135deg, #00ffff, #0088ff);
+      color: #000;
+      font-weight: 800;
     }
 
-    button.secondary:hover {
-      background: rgba(255, 255, 255, 0.2);
+    .btn-success {
+      background: linear-gradient(135deg, #00ff88, #00cc66);
+      color: #000;
+      font-weight: 800;
     }
 
-    button.danger {
-      background: #ef4444;
-      color: white;
+    .btn-danger {
+      background: rgba(255, 0, 100, 0.2);
+      border: 1px solid rgba(255, 0, 100, 0.5);
+      color: #ff3366;
     }
 
-    button.danger:hover {
-      background: #dc2626;
+    .btn-secondary {
+      background: rgba(0, 255, 255, 0.15);
+      border: 1px solid rgba(0, 255, 255, 0.3);
+      color: #00ffff;
     }
 
-    .row {
+    .btn:hover {
+      transform: translateY(-2px);
+      filter: brightness(1.1);
+    }
+
+    .msg {
+      margin-top: 12px;
+      padding: 10px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .msg.ok { background: rgba(0, 255, 136, 0.1); border: 1px solid rgba(0, 255, 136, 0.3); color: #00ff88; }
+    .msg.err { background: rgba(255, 0, 100, 0.1); border: 1px solid rgba(255, 0, 100, 0.3); color: #ff6680; }
+    .msg.muted { background: rgba(0, 255, 255, 0.05); border: 1px solid rgba(0, 255, 255, 0.2); color: rgba(0, 255, 255, 0.7); }
+
+    .hide { display: none !important; }
+
+    .feed {
       display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-      align-items: center;
+      flex-direction: column;
+      gap: 20px;
     }
 
-    /* Posts & Lists */
-    .post-item, .comment-item, .driver-item, .message-item {
-      background: rgba(0, 0, 0, 0.25);
-      border-radius: 16px;
-      padding: 14px;
-      margin-bottom: 12px;
-      border: 1px solid rgba(255, 255, 255, 0.05);
+    .post {
+      position: relative;
+      background: #000;
+      border-radius: 24px;
+      overflow: hidden;
+      aspect-ratio: 9 / 16;
+      max-height: 80vh;
     }
 
     .post-media {
-      max-width: 100%;
-      border-radius: 12px;
-      margin: 10px 0;
-      max-height: 300px;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
       object-fit: cover;
     }
 
-    .badge {
-      display: inline-block;
-      padding: 4px 12px;
-      border-radius: 40px;
-      background: rgba(59, 130, 246, 0.2);
-      font-size: 12px;
+    video.post-media {
+      object-fit: cover;
     }
 
-    .muted {
-      color: #9bb0d2;
-      font-size: 12px;
-    }
-
-    .hr {
-      height: 1px;
-      background: rgba(255, 255, 255, 0.08);
-      margin: 16px 0;
-    }
-
-    /* Map */
-    #map {
-      height: 400px;
-      border-radius: 16px;
-      overflow: hidden;
-      background: #1a1f2e;
-      z-index: 1;
-    }
-
-    /* Toast */
-    .toast {
-      position: fixed;
+    .post-overlay {
+      position: absolute;
       bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #1e293b;
-      border-left: 4px solid #3b82f6;
-      padding: 12px 24px;
-      border-radius: 40px;
-      color: white;
-      z-index: 10000;
-      display: none;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      left: 16px;
+      right: 80px;
+      z-index: 10;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+    }
+
+    .post-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .post-avatar {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #00ffff, #ff00ff);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+    }
+
+    .post-info {
+      flex: 1;
+    }
+
+    .post-author {
+      font-weight: 800;
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .star-certificate {
+      display: inline-flex;
+      background: linear-gradient(135deg, #ffd700, #ffaa00);
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 8px gold;
+    }
+    .star-certificate i {
+      font-size: 11px;
+      color: #000;
+    }
+
+    .post-time {
+      font-size: 11px;
+      opacity: 0.7;
+    }
+
+    .post-caption {
       font-size: 14px;
+      margin-bottom: 6px;
     }
 
-    .status-connected {
-      color: #22c55e;
+    .post-tags {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 6px;
+    }
+    .tag {
+      background: rgba(0, 255, 255, 0.2);
+      padding: 2px 10px;
+      border-radius: 20px;
+      font-size: 10px;
+      color: cyan;
     }
 
-    .status-disconnected {
-      color: #ef4444;
+    .post-actions {
+      position: absolute;
+      bottom: 20px;
+      right: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      z-index: 10;
+    }
+
+    .action-btn {
+      background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(8px);
+      border: none;
+      border-radius: 50%;
+      width: 48px;
+      height: 48px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      color: white;
+      cursor: pointer;
+      transition: 0.2s;
+      font-size: 11px;
+    }
+
+    .action-btn i {
+      font-size: 26px;
+    }
+
+    .action-btn.liked {
+      color: #ff4466;
+    }
+
+    .action-btn:hover {
+      transform: scale(1.05);
+    }
+
+    .sound-indicator {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(8px);
+      border-radius: 30px;
+      padding: 8px 12px;
+      font-size: 12px;
+      z-index: 15;
+      cursor: pointer;
+      border: 1px solid rgba(255,255,255,0.3);
+    }
+
+    .comments-section {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(0,0,0,0.95);
+      backdrop-filter: blur(20px);
+      border-radius: 20px 20px 0 0;
+      max-height: 55%;
+      overflow-y: auto;
+      z-index: 20;
+      padding: 16px;
+      transform: translateY(100%);
+      transition: 0.3s;
+    }
+
+    .comments-section.open {
+      transform: translateY(0);
+    }
+
+    .comment-input-group {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .comment-input-group input {
+      flex: 1;
+      background: #1a1a1a;
+      border: none;
+      border-radius: 30px;
+      padding: 10px 16px;
+      color: white;
+    }
+
+    .comment-input-group button {
+      background: rgba(0,255,255,0.2);
+      border: none;
+      border-radius: 30px;
+      padding: 10px 20px;
+      color: #00ffff;
+      cursor: pointer;
+    }
+
+    .comment-item {
+      padding: 10px 0;
+      border-bottom: 1px solid #222;
+    }
+
+    .comment-user {
+      font-weight: bold;
+      color: #00ffff;
+      font-size: 12px;
+    }
+
+    .reply-btn {
+      background: none;
+      border: none;
+      color: #888;
+      font-size: 10px;
+      cursor: pointer;
+      margin-top: 4px;
+    }
+    .reply-form {
+      margin-top: 8px;
+      margin-left: 20px;
+      display: none;
+    }
+    .reply-form input {
+      width: calc(100% - 70px);
+      padding: 6px 12px;
+      font-size: 12px;
+    }
+    .reply-item {
+      margin-left: 24px;
+      padding: 6px 0;
+      border-left: 2px solid cyan;
+      padding-left: 12px;
+      margin-top: 6px;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 60px;
+      color: rgba(0, 255, 255, 0.6);
+    }
+
+    #toastContainer {
+      position: fixed;
+      bottom: 30px;
+      left: 20px;
+      right: 20px;
+      z-index: 2000;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      pointer-events: none;
+    }
+    .toast {
+      background: #1a1a2e;
+      border-left: 4px solid #00ffff;
+      padding: 12px 20px;
+      border-radius: 12px;
+      color: white;
+      font-size: 14px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      animation: slideIn 0.3s ease;
+      pointer-events: auto;
+    }
+    @keyframes slideIn {
+      from { transform: translateX(-100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.95);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-content {
+      max-width: 450px;
+      width: 90%;
+    }
+    .close-modal {
+      float: right;
+      font-size: 24px;
+      cursor: pointer;
+      color: cyan;
+    }
+
+    #welcomeToast {
+      position: fixed;
+      top: 80px;
+      right: 20px;
+      background: linear-gradient(135deg, #00ffff, #ff00ff);
+      color: #000;
+      padding: 12px 24px;
+      border-radius: 60px;
+      font-weight: bold;
+      z-index: 2000;
+      animation: fadeOut 5s forwards;
+    }
+    @keyframes fadeOut {
+      0% { opacity: 1; transform: translateX(0); }
+      70% { opacity: 1; }
+      100% { opacity: 0; transform: translateX(100%); display: none; }
     }
   </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
-<div class="app">
-  <header>
-    <div class="brand" onclick="goToPage('home')">
-      <i class="fas fa-taxi"></i>
-      <span>VTC Mahajanga</span>
-    </div>
-    <div class="actions">
-      <div class="icon-btn" onclick="goToPage('wallet')"><i class="fas fa-wallet"></i></div>
-      <div class="icon-btn" onclick="goToPage('profile')"><i class="fas fa-user"></i></div>
-    </div>
-  </header>
 
-  <nav>
-    <button class="tab active" onclick="goToPage('home')"><i class="fas fa-home"></i> Accueil</button>
-    <button class="tab" onclick="goToPage('ride')"><i class="fas fa-car"></i> Transport</button>
-    <button class="tab" onclick="goToPage('social')"><i class="fas fa-users"></i> Social</button>
-    <button class="tab" onclick="goToPage('map')"><i class="fas fa-map"></i> Carte</button>
-    <button class="tab" onclick="goToPage('shop')"><i class="fas fa-store"></i> Boutique</button>
-    <button class="tab" onclick="goToPage('messages')"><i class="fas fa-comments"></i> Messages</button>
-    <button class="tab" onclick="goToPage('admin')"><i class="fas fa-shield-alt"></i> Admin</button>
-  </nav>
-
-  <main>
-    <!-- PAGE ACCUEIL -->
-    <div id="page-home" class="page active">
-      <div class="grid-2">
-        <div class="card">
-          <h2><i class="fas fa-lock"></i> Authentification</h2>
-          <div class="field">
-            <label>Email</label>
-            <input type="email" id="loginEmail" placeholder="exemple@email.com">
-          </div>
-          <div class="field">
-            <label>Mot de passe</label>
-            <input type="password" id="loginPassword" placeholder="••••••••">
-          </div>
-          <div class="field">
-            <label>Rôle (inscription)</label>
-            <select id="signupRole">
-              <option value="passenger">Passager</option>
-              <option value="driver">Chauffeur</option>
-              <option value="admin">Admin</option>
-            </select>
-          </div>
-          <div class="row">
-            <button class="primary" onclick="handleLogin()"><i class="fas fa-sign-in-alt"></i> Connexion</button>
-            <button class="secondary" onclick="handleSignup()"><i class="fas fa-user-plus"></i> Inscription</button>
-          </div>
-          <div class="hr"></div>
-          <div id="userStatusDisplay">
-            <span class="muted">👤 Statut :</span> <span id="userStatusText">Non connecté</span>
-          </div>
-        </div>
-        <div class="card">
-          <h2><i class="fas fa-chart-line"></i> Tableau de bord</h2>
-          <div><strong>💰 Portefeuille :</strong> <span id="dashboardWallet">0 Ar</span></div>
-          <div><strong>🚗 Mes courses :</strong> <span id="dashboardRides">0</span></div>
-          <div><strong>📝 Mes posts :</strong> <span id="dashboardPosts">0</span></div>
-        </div>
-      </div>
+<div class="nav">
+  <div class="nav-container">
+    <div class="logo">
+      <div class="logo-icon">🗿</div>
+      <span class="glow-text">HOLDEST ⭐</span>
     </div>
-
-    <!-- PAGE TRANSPORT -->
-    <div id="page-ride" class="page">
-      <div class="grid-2">
-        <div class="card">
-          <h2><i class="fas fa-map-marker-alt"></i> Demander une course</h2>
-          <div class="field">
-            <label>📍 Point de départ</label>
-            <input id="pickupLocation" placeholder="Votre position actuelle">
-          </div>
-          <div class="field">
-            <label>🏁 Destination</label>
-            <input id="destinationLocation" placeholder="Où allez-vous ?">
-          </div>
-          <button class="primary" onclick="searchDrivers()"><i class="fas fa-search"></i> Trouver des chauffeurs</button>
-          <div id="driversResult" class="muted" style="margin-top: 12px"></div>
-          <button class="secondary" onclick="createRideRequest()" style="margin-top: 10px"><i class="fas fa-check-circle"></i> Commander</button>
-        </div>
-        <div class="card">
-          <h2><i class="fas fa-taxi"></i> Chauffeurs disponibles</h2>
-          <div id="availableDriversList" class="muted">Cliquez sur "Trouver des chauffeurs"</div>
-        </div>
-      </div>
+    <div class="user-badge" id="authBadge">
+      <div class="user-avatar">?</div>
+      <span id="authBadgeText">Connexion</span>
     </div>
-
-    <!-- PAGE SOCIAL -->
-    <div id="page-social" class="page">
-      <div class="grid-2">
-        <div class="card">
-          <h2><i class="fas fa-pen-alt"></i> Nouvelle publication</h2>
-          <textarea id="postContent" rows="3" placeholder="Quoi de neuf ?"></textarea>
-          <div class="field" style="margin-top: 10px">
-            <label>📎 Image ou vidéo (optionnel)</label>
-            <input type="file" id="postMedia" accept="image/*,video/*">
-          </div>
-          <button class="primary" onclick="createPost()" style="margin-top: 10px"><i class="fas fa-paper-plane"></i> Publier</button>
-        </div>
-        <div class="card">
-          <h2><i class="fas fa-newspaper"></i> Fil d'actualité</h2>
-          <div id="socialFeed"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- PAGE CARTE -->
-    <div id="page-map" class="page">
-      <div class="card">
-        <h2><i class="fas fa-map-marked-alt"></i> Chauffeurs en temps réel</h2>
-        <div id="map"></div>
-        <div class="muted" style="margin-top: 10px; text-align: center">📍 Position des chauffeurs actifs à Mahajanga</div>
-      </div>
-    </div>
-
-    <!-- PAGE BOUTIQUE -->
-    <div id="page-shop" class="page">
-      <div class="grid-2">
-        <div class="card">
-          <h2><i class="fas fa-box"></i> Produits</h2>
-          <div id="productsList"></div>
-        </div>
-        <div class="card">
-          <h2><i class="fas fa-shopping-cart"></i> Mon panier</h2>
-          <div id="cartItemsList"></div>
-          <div class="hr"></div>
-          <button class="primary" onclick="processCheckout()"><i class="fas fa-credit-card"></i> Payer (placeholder)</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- PAGE MESSAGES -->
-    <div id="page-messages" class="page">
-      <div class="card">
-        <h2><i class="fas fa-comments"></i> Messages</h2>
-        <div id="messagesList" class="muted">Aucun message pour le moment</div>
-        <div class="hr"></div>
-        <div class="row">
-          <input type="text" id="messageInput" placeholder="Écrivez votre message..." style="flex: 1">
-          <button class="primary" onclick="sendMessage()"><i class="fas fa-paper-plane"></i> Envoyer</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- PAGE ADMIN -->
-    <div id="page-admin" class="page">
-      <div class="card">
-        <h2><i class="fas fa-crown"></i> Administration</h2>
-        <div id="adminStatsPanel"></div>
-        <div class="hr"></div>
-        <button class="secondary" onclick="loadAdminData()"><i class="fas fa-sync-alt"></i> Rafraîchir</button>
-      </div>
-    </div>
-
-    <!-- PAGE PORTEFEUILLE -->
-    <div id="page-wallet" class="page">
-      <div class="card">
-        <h2><i class="fas fa-coins"></i> Mon portefeuille</h2>
-        <div style="font-size: 32px; margin: 20px 0" id="walletBalanceDisplay">0 Ar</div>
-        <div class="row">
-          <input type="number" id="addAmountInput" placeholder="Montant à ajouter (Ar)" style="flex: 1">
-          <button class="primary" onclick="addFundsToWallet()"><i class="fas fa-plus-circle"></i> Ajouter</button>
-        </div>
-        <div class="hr"></div>
-        <h3 style="font-size: 16px">📜 Historique des transactions</h3>
-        <div id="transactionsHistory"></div>
-      </div>
-    </div>
-
-    <!-- PAGE PROFIL -->
-    <div id="page-profile" class="page">
-      <div class="card">
-        <h2><i class="fas fa-id-card"></i> Mon profil</h2>
-        <div id="profileDetails"></div>
-        <div class="hr"></div>
-        <button class="danger" onclick="handleLogout()"><i class="fas fa-sign-out-alt"></i> Déconnexion</button>
-      </div>
-    </div>
-  </main>
+  </div>
 </div>
 
-<div id="toastMessage" class="toast"></div>
-
-<script>
-  // ============================================================
-  // CONFIGURATION SUPABASE - À MODIFIER AVEC TES INFOS
-  // ============================================================
-  const SUPABASE_URL = "https://vbmiafgpwuzcvpvaceie.supabase.co";      // ← REMPLACE
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZibWlhZmdwd3V6Y3ZwdmFjZWllIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0NjE3OTgsImV4cCI6MjA5NDAzNzc5OH0.mix0VTNQiFR105uWQZv6bUXxJqKMegdEgF8cGVw8nYw";                   // ← REMPLACE
-  // ============================================================
-
-  // Initialisation du client Supabase
-  const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-  // Variables globales
-  let currentUser = null;
-  let currentUserRole = null;
-  let currentUserProfile = null;
-  let map = null;
-  let mapMarkers = [];
-  let shoppingCart = [];
-  let selectedDriverId = null;
-
-  // Produits de démonstration
-  const demoProducts = [
-    { id: 1, name: "🍕 Pizza VTC", price: 12000 },
-    { id: 2, name: "🥤 Boisson fraîche", price: 2500 },
-    { id: 3, name: "🧢 Casquette VTC", price: 15000 },
-    { id: 4, name: "📱 Support téléphone", price: 8000 }
-  ];
-
-  // ============================================================
-  // FONCTIONS UTILITAIRES
-  // ============================================================
-  function showToast(message, isError = false) {
-    const toast = document.getElementById('toastMessage');
-    toast.textContent = message;
-    toast.style.display = 'block';
-    toast.style.background = isError ? '#dc2626' : '#1e293b';
-    toast.style.borderLeftColor = isError ? '#dc2626' : '#3b82f6';
-    setTimeout(() => {
-      toast.style.display = 'none';
-    }, 3000);
-  }
-
-  function goToPage(pageName) {
-    // Cacher toutes les pages
-    document.querySelectorAll('.page').forEach(page => {
-      page.classList.remove('active');
-    });
-    // Afficher la page demandée
-    const targetPage = document.getElementById(`page-${pageName}`);
-    if (targetPage) targetPage.classList.add('active');
-    
-    // Mettre à jour le style des onglets
-    document.querySelectorAll('.tab').forEach(tab => {
-      tab.classList.remove('active');
-    });
-    if (event && event.target) {
-      const clickedTab = event.target.closest('.tab');
-      if (clickedTab) clickedTab.classList.add('active');
-    }
-    
-    // Charger les données spécifiques à la page
-    if (pageName === 'social') loadSocialFeed();
-    if (pageName === 'map') initMap();
-    if (pageName === 'admin') loadAdminData();
-    if (pageName === 'wallet') loadWalletData();
-    if (pageName === 'profile') loadProfileData();
-    if (pageName === 'messages') loadMessages();
-  }
-
-  // ============================================================
-  // AUTHENTIFICATION (basée sur ton schema public.users)
-  // ============================================================
-  async function handleLogin() {
-    const email = document.getElementById('loginEmail').value;
-    const password = document.getElementById('loginPassword').value;
-    
-    if (!email || !password) {
-      showToast("Veuillez remplir email et mot de passe", true);
-      return;
-    }
-    
-    try {
-      const { data, error } = await supabaseClient.auth.signInWithPassword({
-        email: email,
-        password: password
-      });
-      
-      if (error) throw error;
-      
-      // Récupérer le profil depuis public.users avec user_id (UUID)
-      const { data: profile, error: profileError } = await supabaseClient
-        .from('users')
-        .select('*')
-        .eq('user_id', data.user.id)
-        .single();
-      
-      if (profileError && profileError.code !== 'PGRST116') throw profileError;
-      
-      currentUser = data.user;
-      currentUserProfile = profile;
-      currentUserRole = profile?.role || 'passenger';
-      
-      showToast(`Bienvenue ${profile?.display_name || email.split('@')[0]} !`);
-      updateUserStatusDisplay();
-      loadDashboardStats();
-      
-      // Rediriger vers l'accueil
-      goToPage('home');
-      
-    } catch (error) {
-      showToast(error.message, true);
-    }
-  }
-  
-  async function handleSignup() {
-    const email = document.getElementById('loginEmail').value;
-    const password = document.getElementById('loginPassword').value;
-    const role = document.getElementById('signupRole').value;
-    
-    if (!email || !password) {
-      showToast("Veuillez remplir email et mot de passe", true);
-      return;
-    }
-    
-    if (password.length < 6) {
-      showToast("Le mot de passe doit contenir au moins 6 caractères", true);
-      return;
-    }
-    
-    try {
-      // Créer l'utilisateur dans Supabase Auth
-      const { data, error } = await supabaseClient.auth.signUp({
-        email: email,
-        password: password
-      });
-      
-      if (error) throw error;
-      
-      // Créer le profil dans public.users (conformément à ton schéma)
-      const { error: insertError } = await supabaseClient
-        .from('users')
-        .insert({
-          user_id: data.user.id,
-          email: email,
-          role: role,
-          display_name: email.split('@')[0],
-          created_at: new Date().toISOString()
-        });
-      
-      if (insertError) throw insertError;
-      
-      // Créer le portefeuille
-      await supabaseClient
-        .from('wallets')
-        .insert({
-          user_id: data.user.id,
-          balance: 0,
-          created_at: new Date().toISOString()
-        });
-      
-      showToast("Compte créé avec succès ! Connectez-vous maintenant.");
-      
-    } catch (error) {
-      showToast(error.message, true);
-    }
-  }
-  
-  async function handleLogout() {
-    await supabaseClient.auth.signOut();
-    currentUser = null;
-    currentUserProfile = null;
-    currentUserRole = null;
-    updateUserStatusDisplay();
-    showToast("Déconnecté");
-    goToPage('home');
-  }
-  
-  function updateUserStatusDisplay() {
-    const statusSpan = document.getElementById('userStatusText');
-    if (currentUser) {
-      statusSpan.innerHTML = `<span class="status-connected">✅ ${currentUserProfile?.display_name || currentUser.email} (${currentUserRole})</span>`;
-    } else {
-      statusSpan.innerHTML = '<span class="status-disconnected">❌ Non connecté</span>';
-    }
-  }
-  
-  // ============================================================
-  // DASHBOARD & STATS
-  // ============================================================
-  async function loadDashboardStats() {
-    if (!currentUser) return;
-    
-    // Charger le solde du portefeuille
-    const { data: wallet } = await supabaseClient
-      .from('wallets')
-      .select('balance')
-      .eq('user_id', currentUser.id)
-      .single();
-    
-    document.getElementById('dashboardWallet').innerHTML = `${wallet?.balance?.toLocaleString() || 0} Ar`;
-    
-    // Compter les courses
-    const { count: ridesCount } = await supabaseClient
-      .from('rides')
-      .select('*', { count: 'exact', head: true })
-      .eq('passenger_id', currentUser.id);
-    
-    document.getElementById('dashboardRides').innerHTML = ridesCount || 0;
-    
-    // Compter les posts
-    const { count: postsCount } = await supabaseClient
-      .from('posts')
-      .select('*', { count: 'exact', head: true })
-      .eq('author_id', currentUser.id);
-    
-    document.getElementById('dashboardPosts').innerHTML = postsCount || 0;
-  }
-  
-  // ============================================================
-  // PORTEFEUILLE & TRANSACTIONS
-  // ============================================================
-  async function loadWalletData() {
-    if (!currentUser) {
-      showToast("Connectez-vous d'abord", true);
-      return;
-    }
-    
-    const { data: wallet } = await supabaseClient
-      .from('wallets')
-      .select('balance')
-      .eq('user_id', currentUser.id)
-      .single();
-    
-    document.getElementById('walletBalanceDisplay').innerHTML = `${wallet?.balance?.toLocaleString() || 0} Ar`;
-    
-    const { data: transactions } = await supabaseClient
-      .from('transactions')
-      .select('*')
-      .eq('user_id', currentUser.id)
-      .order('created_at', { ascending: false })
-      .limit(20);
-    
-    const tbody = document.getElementById('transactionsHistory');
-    if (transactions && transactions.length > 0) {
-      tbody.innerHTML = transactions.map(tx => `
-        <div class="post-item">
-          <div class="row" style="justify-content: space-between">
-            <span><strong>${tx.type || 'Transaction'}</strong></span>
-            <span style="color: ${tx.amount >= 0 ? '#22c55e' : '#ef4444'}">${tx.amount >= 0 ? '+' : ''}${tx.amount?.toLocaleString()} Ar</span>
+<div class="container">
+  <div>
+    <div class="cyber-card">
+      <div class="card-header">
+        <h2>✨ CRÉER UN POST</h2>
+      </div>
+      <div class="card-body">
+        <div id="afterAuth" class="hide">
+          <div class="input-group">
+            <label>💬 LÉGENDE</label>
+            <textarea id="caption" placeholder="Partage ton vibe..." rows="3"></textarea>
           </div>
-          <div class="muted">${new Date(tx.created_at).toLocaleString()}</div>
-          <div class="muted">${tx.status || 'completed'}</div>
+          <div class="input-group">
+            <label>🏷️ CATÉGORIE</label>
+            <select id="category">
+              <option value="general">🌟 Général</option>
+              <option value="fun">😂 Fun / Humour</option>
+              <option value="admin">📄 Admin / Services</option>
+              <option value="galere">😤 Galères</option>
+              <option value="conseil">💡 Conseils</option>
+            </select>
+          </div>
+          <div class="input-group">
+            <label>🎬 MÉDIA (IMAGE/VIDÉO)</label>
+            <input id="mediaFile" type="file" accept="image/*,video/*" />
+          </div>
+          <button class="btn btn-success" id="btnPublish" style="width:100%">🚀 PUBLIER</button>
+          <div id="pubMsg" class="msg muted"></div>
         </div>
-      `).join('');
-    } else {
-      tbody.innerHTML = '<div class="muted">Aucune transaction</div>';
-    }
-  }
-  
-  async function addFundsToWallet() {
-    if (!currentUser) {
-      showToast("Connectez-vous d'abord", true);
-      return;
-    }
-    
-    const amount = parseInt(document.getElementById('addAmountInput').value);
-    if (!amount || amount <= 0) {
-      showToast("Montant invalide", true);
-      return;
-    }
-    
-    // Récupérer le wallet actuel
-    const { data: wallet } = await supabaseClient
-      .from('wallets')
-      .select('balance')
-      .eq('user_id', currentUser.id)
-      .single();
-    
-    const newBalance = (wallet?.balance || 0) + amount;
-    
-    // Mettre à jour le wallet
-    await supabaseClient
-      .from('wallets')
-      .update({ balance: newBalance, updated_at: new Date().toISOString() })
-      .eq('user_id', currentUser.id);
-    
-    // Ajouter une transaction
-    await supabaseClient
-      .from('transactions')
-      .insert({
-        user_id: currentUser.id,
-        type: 'wallet_add',
-        amount: amount,
-        currency: 'MGA',
-        status: 'completed',
-        provider: 'demo',
-        external_ref: 'ADD_' + Date.now(),
-        created_at: new Date().toISOString()
-      });
-    
-    showToast(`${amount.toLocaleString()} Ar ajoutés au portefeuille !`);
-    await loadWalletData();
-    await loadDashboardStats();
-    document.getElementById('addAmountInput').value = '';
-  }
-  
-  // ============================================================
-  // TRANSPORT & DRIVERS
-  // ============================================================
-  async function searchDrivers() {
-    if (!currentUser) {
-      showToast("Connectez-vous pour commander une course", true);
-      return;
-    }
-    
-    const { data: drivers } = await supabaseClient
-      .from('driver_locations')
-      .select('*, users:driver_id(display_name, email)')
-      .eq('is_available', true)
-      .limit(10);
-    
-    const driversDiv = document.getElementById('availableDriversList');
-    const resultDiv = document.getElementById('driversResult');
-    
-    if (!drivers || drivers.length === 0) {
-      driversDiv.innerHTML = '<div class="muted">Aucun chauffeur disponible pour le moment</div>';
-      resultDiv.innerHTML = '<span class="badge">⚠️ Aucun chauffeur trouvé</span>';
-      return;
-    }
-    
-    driversDiv.innerHTML = drivers.map(driver => `
-      <div class="driver-item">
-        <div class="row" style="justify-content: space-between">
-          <div>
-            <strong>🚕 ${driver.users?.display_name || 'Chauffeur'}</strong>
-            <div class="muted">Disponible</div>
+        <div id="notAuth">
+          <div style="text-align: center; padding: 20px; color: rgba(0, 255, 255, 0.6);">
+            🔒 CONNECTE-TOI POUR PUBLIER
           </div>
-          <button class="secondary" onclick="selectDriverForRide('${driver.driver_id}')">Sélectionner</button>
         </div>
       </div>
-    `).join('');
-    
-    resultDiv.innerHTML = `<span class="badge">✅ ${drivers.length} chauffeur(s) trouvé(s)</span>`;
-  }
-  
-  function selectDriverForRide(driverId) {
-    selectedDriverId = driverId;
-    showToast(`Chauffeur sélectionné !`);
-    document.getElementById('driversResult').innerHTML = `<span class="badge">🚖 Chauffeur sélectionné. Cliquez sur "Commander"</span>`;
-  }
-  
-  async function createRideRequest() {
-    if (!currentUser) {
-      showToast("Connectez-vous pour commander", true);
-      return;
-    }
-    
-    const pickup = document.getElementById('pickupLocation').value;
-    const destination = document.getElementById('destinationLocation').value;
-    
-    if (!pickup || !destination) {
-      showToast("Veuillez remplir départ et destination", true);
-      return;
-    }
-    
-    if (!selectedDriverId) {
-      showToast("Veuillez d'abord sélectionner un chauffeur", true);
-      return;
-    }
-    
-    const priceEstimate = 5000; // Prix estimé en dur pour démo
-    
-    const { error } = await supabaseClient
-      .from('rides')
-      .insert({
-        passenger_id: currentUser.id,
-        driver_id: selectedDriverId,
-        pickup_address: pickup,
-        dropoff_address: destination,
-        status: 'pending',
-        price_amount: priceEstimate,
-        created_at: new Date().toISOString()
-      });
-    
-    if (error) {
-      showToast("Erreur lors de la création de la course", true);
-      console.error(error);
-      return;
-    }
-    
-    showToast(`Course demandée ! Prix estimé: ${priceEstimate.toLocaleString()} Ar`);
-    document.getElementById('pickupLocation').value = '';
-    document.getElementById('destinationLocation').value = '';
-    selectedDriverId = null;
-    await loadDashboardStats();
-  }
-  
-  // ============================================================
-  // CARTE LIVE (Leaflet + driver_locations)
-  // ============================================================
-  async function initMap() {
-    if (map) return;
-    
-    map = L.map('map').setView([-15.7167, 46.3167], 13);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap contributors'
-    }).addTo(map);
-    
-    await loadDriversOnMap();
-    
-    // Rafraîchir toutes les 10 secondes
-    setInterval(loadDriversOnMap, 10000);
-  }
-  
-  async function loadDriversOnMap() {
-    if (!map) return;
-    
-    // Supprimer les anciens marqueurs
-    mapMarkers.forEach(marker => marker.remove());
-    mapMarkers = [];
-    
-    const { data: drivers } = await supabaseClient
-      .from('driver_locations')
-      .select('*')
-      .eq('is_available', true);
-    
-    if (!drivers) return;
-    
-    drivers.forEach(driver => {
-      if (driver.lat && driver.lng) {
-        const marker = L.marker([driver.lat, driver.lng])
-          .addTo(map)
-          .bindPopup(`🚗 Chauffeur ${driver.driver_id?.slice(0, 8)}...`);
-        mapMarkers.push(marker);
-      }
-    });
-  }
-  
-  // ============================================================
-  // SOCIAL (posts, likes, comments avec images/vidéos)
-  // ============================================================
-  async function loadSocialFeed() {
-    const { data: posts } = await supabaseClient
-      .from('posts')
-      .select('*, users:author_id(display_name, avatar_url)')
-      .order('created_at', { ascending: false })
-      .limit(50);
-    
-    const feedDiv = document.getElementById('socialFeed');
-    if (!posts || posts.length === 0) {
-      feedDiv.innerHTML = '<div class="muted">Aucune publication pour le moment. Soyez le premier à poster !</div>';
-      return;
-    }
-    
-    feedDiv.innerHTML = '';
-    
-    for (const post of posts) {
-      // Compter les likes
-      const { count: likesCount } = await supabaseClient
-        .from('likes')
-        .select('*', { count: 'exact', head: true })
-        .eq('post_id', post.id);
-      
-      // Compter les commentaires
-      const { data: comments } = await supabaseClient
-        .from('comments')
-        .select('*, users:user_id(display_name)')
-        .eq('post_id', post.id)
-        .order('created_at', { ascending: true });
-      
-      const commentsCount = comments?.length || 0;
-      
-      const mediaHtml = post.media_url ? 
-        (post.media_type === 'image' ? 
-          `<img src="${post.media_url}" class="post-media" alt="Post media">` : 
-          `<video src="${post.media_url}" controls class="post-media"></video>`) : '';
-      
-      const postDiv = document.createElement('div');
-      postDiv.className = 'post-item';
-      postDiv.innerHTML = `
-        <div class="row" style="justify-content: space-between">
-          <div>
-            <strong>${post.users?.display_name || 'Anonyme'}</strong>
-            <span class="muted"> • ${new Date(post.created_at).toLocaleString()}</span>
+    </div>
+  </div>
+
+  <div>
+    <div class="filter-bar">
+      <button class="filter-btn active" data-filter="recent">📅 Récents</button>
+      <button class="filter-btn" data-filter="popular">🔥 Populaires</button>
+    </div>
+    <div id="feed" class="feed">
+      <div class="loading">🌀 CHARGEMENT DES POSTS...</div>
+    </div>
+  </div>
+</div>
+
+<div id="authModal" class="modal">
+  <div class="modal-content">
+    <div class="cyber-card">
+      <div class="card-header" style="display: flex; justify-content: space-between;">
+        <h2>⚡ ACCÈS COMPTE</h2>
+        <span class="close-modal" onclick="closeAuthModal()">&times;</span>
+      </div>
+      <div class="card-body">
+        <div id="modalSignupForm">
+          <div class="input-group">
+            <label>🏷️ PSEUDO</label>
+            <input id="modal_username" placeholder="ex: cyber_knight" />
           </div>
+          <div class="input-group">
+            <label>📧 EMAIL</label>
+            <input id="modal_email" type="email" placeholder="email@example.com" />
+          </div>
+          <div class="input-group">
+            <label>🔒 MOT DE PASSE</label>
+            <input id="modal_password" type="password" placeholder="••••••••" />
+          </div>
+          <button class="btn btn-primary" id="modalSignupBtn" style="width:100%">CRÉER MON COMPTE</button>
+          <div id="modalSignupMsg" class="msg muted"></div>
         </div>
-        <div style="margin: 10px 0">${escapeHtml(post.content || '')}</div>
-        ${mediaHtml}
-        <div class="row" style="margin-top: 10px">
-          <button class="secondary" onclick="toggleLikePost('${post.id}')">❤️ ${likesCount || 0}</button>
-          <button class="secondary" onclick="showCommentModal('${post.id}')">💬 ${commentsCount}</button>
+        <hr />
+        <div id="modalLoginForm">
+          <div class="input-group">
+            <label>📧 EMAIL</label>
+            <input id="modal_login_email" type="email" placeholder="email@example.com" />
+          </div>
+          <div class="input-group">
+            <label>🔒 MOT DE PASSE</label>
+            <input id="modal_login_password" type="password" placeholder="••••••••" />
+          </div>
+          <button class="btn btn-secondary" id="modalLoginBtn" style="width:100%">SE CONNECTER</button>
+          <div id="modalLoginMsg" class="msg muted"></div>
         </div>
-        <div id="comments-${post.id}" class="comments-section" style="margin-top: 10px">
-          ${comments?.map(c => `
-            <div class="comment-item">
-              <strong>${c.users?.display_name || 'Anonyme'}</strong>
-              <span class="muted">: ${escapeHtml(c.content)}</span>
-            </div>
-          `).join('') || ''}
-        </div>
-      `;
-      feedDiv.appendChild(postDiv);
-    }
-  }
-  
-  function escapeHtml(str) {
-    if (!str) return '';
-    return str.replace(/[&<>]/g, function(m) {
-      if (m === '&') return '&amp;';
-      if (m === '<') return '&lt;';
-      if (m === '>') return '&gt;';
-      return m;
+        <hr />
+        <button class="btn btn-danger" id="modalLogoutBtn" style="width:100%; display: none;">🚪 SE DÉCONNECTER</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toastContainer"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  (function() {
+    const SUPABASE_URL = "https://wtsmekozfpeaixqobuik.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind0c21la296ZnBlYWl4cW9idWlrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4Mjk2MjcsImV4cCI6MjA5MzQwNTYyN30.AUm9renaVr3A8pzDNx5Dm_f4XJrhkIKlnUePm6Gl5S0";
+    
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: { persistSession: true, autoRefreshToken: true }
     });
-  }
-  
-  async function createPost() {
-    if (!currentUser) {
-      showToast("Connectez-vous pour publier", true);
-      return;
+
+    let currentUser = null;
+    let starCache = new Map();
+    let currentFilter = "recent";
+
+    // ===================== UTILS =====================
+    function showToast(message, type = "info") {
+      const container = document.getElementById("toastContainer");
+      const toast = document.createElement("div");
+      toast.className = "toast";
+      toast.innerHTML = message;
+      container.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
     }
-    
-    const content = document.getElementById('postContent').value;
-    if (!content) {
-      showToast("Veuillez écrire quelque chose", true);
-      return;
+
+    function escapeHtml(s) {
+      if (!s) return "";
+      return String(s).replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;');
     }
+
+    function formatTime(date) {
+      if (!date) return "";
+      const d = new Date(date);
+      const now = new Date();
+      const diff = Math.floor((now - d) / 1000);
+      if (diff < 60) return "à l'instant";
+      if (diff < 3600) return `il y a ${Math.floor(diff / 60)} min`;
+      if (diff < 86400) return `il y a ${Math.floor(diff / 3600)} h`;
+      return d.toLocaleDateString();
+    }
+
+    // ===================== PROFIL & STAR =====================
+    async function getProfile() {
+      if (!supabase || !currentUser) return null;
+      const { data, error } = await supabase.from("profiles").select("*").eq("id", currentUser.id).single();
+      if (error) return null;
+      return data;
+    }
+
+    async function getUserTotalLikesReceived(userId) {
+      const { data: posts } = await supabase.from("posts").select("id").eq("user_id", userId);
+      if (!posts || posts.length === 0) return 0;
+      let total = 0;
+      for (let p of posts) {
+        const { count } = await supabase.from("likes").select("*", { count: 'exact', head: true }).eq("post_id", p.id);
+        total += (count || 0);
+      }
+      return total;
+    }
+
+    async function hasStarEligibility(userId) {
+      if (starCache.has(userId)) return starCache.get(userId);
+      const totalLikes = await getUserTotalLikesReceived(userId);
+      const eligible = totalLikes >= 30;
+      starCache.set(userId, eligible);
+      return eligible;
+    }
+
+    function invalidateStarCache(userId) { starCache.delete(userId); }
+
+    // ===================== INTERACTIONS =====================
+    async function loadPostInteractions(postId) {
+      try {
+        const { count: likesCount } = await supabase.from("likes").select("*", { count: 'exact', head: true }).eq("post_id", postId);
+        let userLiked = false;
+        if (currentUser) {
+          const { data: likeData } = await supabase.from("likes").select("*").eq("post_id", postId).eq("user_id", currentUser.id).maybeSingle();
+          userLiked = !!likeData;
+        }
+        const { data: comments } = await supabase.from("comments").select("*").eq("post_id", postId).order("created_at", { ascending: true });
+        for (let c of comments) {
+          const { data: replies } = await supabase.from("comment_replies").select("*").eq("comment_id", c.id).order("created_at");
+          c.replies = replies || [];
+        }
+        return { likes: likesCount || 0, userLiked, comments: comments || [] };
+      } catch(e) {
+        return { likes: 0, userLiked: false, comments: [] };
+      }
+    }
+
+    async function toggleLike(postId, postUserId) {
+      if (!currentUser) { showToast("🔒 Connecte-toi pour liker"); return false; }
+      try {
+        const { data: existing } = await supabase.from("likes").select("id").eq("post_id", postId).eq("user_id", currentUser.id).maybeSingle();
+        if (existing) {
+          await supabase.from("likes").delete().eq("id", existing.id);
+          invalidateStarCache(postUserId);
+          return false;
+        } else {
+          await supabase.from("likes").insert({ post_id: postId, user_id: currentUser.id });
+          invalidateStarCache(postUserId);
+          return true;
+        }
+      } catch(e) { return false; }
+    }
+
+    async function addComment(postId, content, parentId = null) {
+      if (!currentUser) { showToast("🔒 Connecte-toi pour commenter"); return false; }
+      if (!content.trim()) return false;
+      try {
+        const profile = await getProfile();
+        if (parentId) {
+          await supabase.from("comment_replies").insert({
+            comment_id: parentId,
+            user_id: currentUser.id,
+            username: profile?.username || "Anonyme",
+            content: content.trim()
+          });
+        } else {
+          await supabase.from("comments").insert({
+            post_id: postId,
+            user_id: currentUser.id,
+            username: profile?.username || "Anonyme",
+            content: content.trim()
+          });
+        }
+        return true;
+      } catch(e) { return false; }
+    }
+
+    // ===================== FEED =====================
+    async function loadFeed() {
+      const feed = document.getElementById("feed");
+      if (!supabase) { feed.innerHTML = '<div class="loading">⚠️ ERREUR CONNEXION</div>'; return; }
+      
+      feed.innerHTML = '<div class="loading">🌀 CHARGEMENT...</div>';
+      
+      try {
+        let query = supabase.from("posts").select("*");
+        if (currentFilter === "popular") {
+          // On trie après
+        } else {
+          query = query.order("created_at", { ascending: false });
+        }
+        
+        const { data: posts, error } = await query;
+        if (error) throw error;
+        
+        if (!posts || posts.length === 0) {
+          feed.innerHTML = '<div class="cyber-card" style="padding: 40px; text-align: center;">📭 AUCUN POST POUR LE MOMENT</div>';
+          return;
+        }
+        
+        let postsWithLikes = await Promise.all(posts.map(async (p) => {
+          const { count } = await supabase.from("likes").select("*", { count: 'exact', head: true }).eq("post_id", p.id);
+          return { ...p, likeCount: count || 0 };
+        }));
+        
+        if (currentFilter === "popular") {
+          postsWithLikes.sort((a, b) => b.likeCount - a.likeCount);
+        }
+        
+        feed.innerHTML = "";
+        
+        for (const post of postsWithLikes) {
+          const { likes, userLiked, comments } = await loadPostInteractions(post.id);
+          const hasStar = await hasStarEligibility(post.user_id);
+          
+          const mediaHtml = post.media_url ? (post.media_type === "video" ? `<video class="post-media" src="${escapeHtml(post.media_url)}" loop autoplay muted playsinline></video>` : `<img class="post-media" src="${escapeHtml(post.media_url)}" alt="media" />`) : `<div style="background:#1a1a1a; width:100%; height:100%; display:flex; align-items:center; justify-content:center;">📷 Pas de média</div>`;
+          
+          let commentsHtml = `<div class="comment-input-group">
+            <input type="text" id="comment-input-${post.id}" placeholder="Écris un commentaire..." />
+            <button onclick="sendComment('${post.id}')">⬆️</button>
+          </div>`;
+          
+          for (const c of comments) {
+            commentsHtml += `<div class="comment-item">
+              <div class="comment-user">${escapeHtml(c.username)}</div>
+              <div>${escapeHtml(c.content)}</div>
+              <div style="font-size: 10px; color: #888;">${formatTime(c.created_at)}</div>
+              <button class="reply-btn" onclick="showReplyForm('${c.id}')">💬 Répondre</button>
+              <div id="reply-form-${c.id}" class="reply-form" style="display:none;">
+                <input id="reply-input-${c.id}" type="text" placeholder="Ta réponse..." />
+                <button onclick="sendReply('${c.id}', '${post.id}')">Envoyer</button>
+              </div>`;
+            if (c.replies && c.replies.length) {
+              for (const r of c.replies) {
+                commentsHtml += `<div class="reply-item">
+                  <div class="comment-user">${escapeHtml(r.username)}</div>
+                  <div>${escapeHtml(r.content)}</div>
+                  <div style="font-size: 10px; color: #888;">${formatTime(r.created_at)}</div>
+                </div>`;
+              }
+            }
+            commentsHtml += `</div>`;
+          }
+          
+          if (comments.length === 0) {
+            commentsHtml += '<div style="text-align: center; padding: 10px; color: rgba(0,255,255,0.4); font-size: 12px;">💬 Aucun commentaire</div>';
+          }
+          
+          const starHtml = hasStar ? `<span class="star-certificate"><i class="fas fa-star"></i></span>` : '';
+          const categoryEmoji = { general: "🌟", fun: "😂", admin: "📄", galere: "😤", conseil: "💡" }[post.category] || "🔹";
+          
+          const postDiv = document.createElement("div");
+          postDiv.className = "post";
+          postDiv.innerHTML = `
+            ${mediaHtml}
+            <div class="sound-indicator" data-muted="true">🔇 Son coupé</div>
+            <div class="post-overlay">
+              <div class="post-header">
+                <div class="post-avatar">${escapeHtml((post.user_username || "U")[0].toUpperCase())}</div>
+                <div class="post-info">
+                  <div class="post-author">
+                    ${escapeHtml(post.user_username || "Utilisateur")}
+                    ${starHtml}
+                    <span class="tag">${categoryEmoji}</span>
+                  </div>
+                  <div class="post-time">${formatTime(post.created_at)}</div>
+                </div>
+              </div>
+              ${post.caption ? `<div class="post-caption">${escapeHtml(post.caption)}</div>` : ""}
+              <div class="post-tags">${post.tags ? post.tags.split(',').map(t => `<span class="tag">#${escapeHtml(t.trim())}</span>`).join('') : ""}</div>
+            </div>
+            <div class="post-actions">
+              <button class="action-btn ${userLiked ? 'liked' : ''}" onclick="handleLike('${post.id}', '${post.user_id}')">
+                <i class="fas fa-heart"></i>
+                <span>${likes}</span>
+              </button>
+              <button class="action-btn" onclick="toggleComments('${post.id}')">
+                <i class="fas fa-comment"></i>
+                <span>${comments.length}</span>
+              </button>
+              <button class="action-btn" onclick="sharePost('${post.id}')">
+                <i class="fas fa-share-alt"></i>
+              </button>
+              <button class="action-btn" onclick="reportPost('${post.id}')">
+                <i class="fas fa-flag"></i>
+              </button>
+            </div>
+            <div id="comments-${post.id}" class="comments-section">
+              ${commentsHtml}
+            </div>
+          `;
+          
+          feed.appendChild(postDiv);
+          
+          const video = postDiv.querySelector('video');
+          const soundIndicator = postDiv.querySelector('.sound-indicator');
+          
+          if(video) {
+            video.muted = true;
+            video.playsInline = true;
+            video.autoplay = true;
+            video.loop = true;
+            
+            const observer = new IntersectionObserver((entries) => {
+              entries.forEach(entry => {
+                if(entry.isIntersecting) {
+                  video.play().catch(e => console.log("Auto-play:", e));
+                } else {
+                  video.pause();
+                }
+              });
+            }, { threshold: 0.5 });
+            observer.observe(video);
+            
+            if(soundIndicator) {
+              soundIndicator.addEventListener('click', (e) => {
+                e.stopPropagation();
+                video.muted = !video.muted;
+                soundIndicator.innerHTML = video.muted ? "🔇 Son coupé" : "🔊 Son activé";
+                showToast(video.muted ? "🔇 Son désactivé" : "🔊 Son activé", "info");
+              });
+            }
+          }
+        }
+      } catch(e) {
+        console.error(e);
+        feed.innerHTML = `<div class="loading">⚠️ ERREUR: ${escapeHtml(e.message)}</div>`;
+      }
+    }
+
+    // ===================== GLOBAL FUNCTIONS (window) =====================
+    window.handleLike = async function(postId, postUserId) {
+      await toggleLike(postId, postUserId);
+      await loadFeed();
+    };
+    window.toggleComments = function(postId) {
+      const section = document.getElementById(`comments-${postId}`);
+      if (section) section.classList.toggle("open");
+    };
+    window.sendComment = async function(postId) {
+      const input = document.getElementById(`comment-input-${postId}`);
+      if (input && input.value.trim()) {
+        await addComment(postId, input.value);
+        input.value = "";
+        await loadFeed();
+        const section = document.getElementById(`comments-${postId}`);
+        if (section) section.classList.add("open");
+      }
+    };
+    window.showReplyForm = function(commentId) {
+      const form = document.getElementById(`reply-form-${commentId}`);
+      if (form) form.style.display = form.style.display === "none" ? "block" : "none";
+    };
+    window.sendReply = async function(commentId, postId) {
+      const input = document.getElementById(`reply-input-${commentId}`);
+      if (input && input.value.trim()) {
+        await addComment(postId, input.value, commentId);
+        input.value = "";
+        await loadFeed();
+      }
+    };
+    window.sharePost = async function(postId) {
+      const url = `${window.location.origin}?post=${postId}`;
+      try {
+        await navigator.clipboard.writeText(url);
+        showToast("🔗 Lien copié ! Partage-le avec tes potes", "ok");
+      } catch(e) {
+        showToast("📱 Lien : " + url, "info");
+      }
+    };
+    window.reportPost = async function(postId) {
+      if (!currentUser) { showToast("🔒 Connecte-toi pour signaler"); return; }
+      const reason = prompt("Motif du signalement :");
+      if (!reason) return;
+      try {
+        await supabase.from("reports").insert({ post_id: postId, user_id: currentUser.id, reason });
+        showToast("🚨 Signalement envoyé", "ok");
+      } catch(e) { showToast("Erreur", "err"); }
+    };
+
+    // ===================== AUTH & UI =====================
+    async function updateBadge() {
+      const authBadgeText = document.getElementById("authBadgeText");
+      const afterAuth = document.getElementById("afterAuth");
+      const notAuth = document.getElementById("notAuth");
+      const modalLogoutBtn = document.getElementById("modalLogoutBtn");
+      
+      if (currentUser) {
+        const profile = await getProfile();
+        const name = profile?.username || currentUser.email?.split('@')[0] || "User";
+        document.querySelector("#authBadge .user-avatar").innerText = name[0].toUpperCase();
+        authBadgeText.innerText = name;
+        afterAuth.classList.remove("hide");
+        notAuth.classList.add("hide");
+        modalLogoutBtn.style.display = "block";
+        if (!sessionStorage.getItem("welcomed")) {
+          sessionStorage.setItem("welcomed", "true");
+          const welcomeDiv = document.createElement("div");
+          welcomeDiv.id = "welcomeToast";
+          welcomeDiv.innerHTML = `👋 Bienvenue ${escapeHtml(name)} ! ⭐`;
+          document.body.appendChild(welcomeDiv);
+          setTimeout(() => welcomeDiv.remove(), 5000);
+        }
+      } else {
+        document.querySelector("#authBadge .user-avatar").innerText = "?";
+        authBadgeText.innerText = "Connexion";
+        afterAuth.classList.add("hide");
+        notAuth.classList.remove("hide");
+        modalLogoutBtn.style.display = "none";
+      }
+    }
+
+    function openAuthModal() {
+      const modal = document.getElementById("authModal");
+      modal.style.display = "flex";
+      document.getElementById("modal_username").value = "";
+      document.getElementById("modal_email").value = "";
+      document.getElementById("modal_password").value = "";
+      document.getElementById("modal_login_email").value = "";
+      document.getElementById("modal_login_password").value = "";
+      document.getElementById("modalSignupMsg").innerText = "";
+      document.getElementById("modalLoginMsg").innerText = "";
+    }
+    window.openAuthModal = openAuthModal;
+    window.closeAuthModal = function() {
+      document.getElementById("authModal").style.display = "none";
+    };
+
+    // ===================== EVENT LISTENERS =====================
+    document.getElementById("authBadge").addEventListener("click", openAuthModal);
     
-    let mediaUrl = null;
-    let mediaType = null;
-    const fileInput = document.getElementById('postMedia');
-    const file = fileInput.files[0];
-    
-    if (file) {
-      const fileExt = file.type.split('/')[0];
-      if (fileExt !== 'image' && fileExt !== 'video') {
-        showToast("Seules les images et vidéos sont acceptées", true);
+    document.getElementById("modalSignupBtn").addEventListener("click", async () => {
+      const username = document.getElementById("modal_username").value.trim();
+      const email = document.getElementById("modal_email").value.trim();
+      const password = document.getElementById("modal_password").value;
+      const signupMsg = document.getElementById("modalSignupMsg");
+      
+      if (!username || !email || password.length < 6) {
+        signupMsg.className = "msg err";
+        signupMsg.innerText = "❌ Pseudo, email et mot de passe 6+ requis";
         return;
       }
-      
-      const fileName = `${currentUser.id}_${Date.now()}_${file.name}`;
-      const { data: upload, error: uploadError } = await supabaseClient.storage
-        .from('social-media')
-        .upload(fileName, file);
-      
-      if (uploadError) {
-        showToast("Erreur lors de l'upload du média", true);
-        console.error(uploadError);
+      signupMsg.className = "msg muted";
+      signupMsg.innerText = "⏳ Création...";
+      const { error } = await supabase.auth.signUp({
+        email, password,
+        options: { data: { username } }
+      });
+      if (error) {
+        signupMsg.className = "msg err";
+        signupMsg.innerText = error.message;
       } else {
-        const { data: publicUrl } = supabaseClient.storage
-          .from('social-media')
-          .getPublicUrl(fileName);
-        mediaUrl = publicUrl.publicUrl;
-        mediaType = fileExt;
+        signupMsg.className = "msg ok";
+        signupMsg.innerText = "✅ Compte créé ! Connecte-toi";
       }
-    }
-    
-    const { error } = await supabaseClient
-      .from('posts')
-      .insert({
-        author_id: currentUser.id,
-        content: content,
-        media_url: mediaUrl,
-        media_type: mediaType,
-        visibility: 'public',
-        created_at: new Date().toISOString()
-      });
-    
-    if (error) {
-      showToast("Erreur lors de la publication", true);
-      console.error(error);
-      return;
-    }
-    
-    showToast("Publication créée avec succès !");
-    document.getElementById('postContent').value = '';
-    fileInput.value = '';
-    await loadSocialFeed();
-    await loadDashboardStats();
-  }
-  
-  async function toggleLikePost(postId) {
-    if (!currentUser) {
-      showToast("Connectez-vous pour liker", true);
-      return;
-    }
-    
-    // Vérifier si déjà liké
-    const { data: existingLike } = await supabaseClient
-      .from('likes')
-      .select('id')
-      .eq('post_id', postId)
-      .eq('user_id', currentUser.id)
-      .maybeSingle();
-    
-    if (existingLike) {
-      await supabaseClient
-        .from('likes')
-        .delete()
-        .eq('id', existingLike.id);
-    } else {
-      await supabaseClient
-        .from('likes')
-        .insert({
-          post_id: postId,
-          user_id: currentUser.id,
-          created_at: new Date().toISOString()
+    });
+
+    document.getElementById("modalLoginBtn").addEventListener("click", async () => {
+      const email = document.getElementById("modal_login_email").value.trim();
+      const password = document.getElementById("modal_login_password").value;
+      const loginMsg = document.getElementById("modalLoginMsg");
+      
+      if (!email || !password) {
+        loginMsg.className = "msg err";
+        loginMsg.innerText = "❌ Email et mot de passe requis";
+        return;
+      }
+      loginMsg.className = "msg muted";
+      loginMsg.innerText = "⏳ Connexion...";
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) {
+        loginMsg.className = "msg err";
+        loginMsg.innerText = error.message;
+      } else {
+        loginMsg.className = "msg ok";
+        loginMsg.innerText = "✅ Connecté !";
+        setTimeout(() => window.closeAuthModal(), 1000);
+      }
+    });
+
+    document.getElementById("modalLogoutBtn").addEventListener("click", async () => {
+      await supabase.auth.signOut();
+      starCache.clear();
+      window.closeAuthModal();
+      showToast("👋 Déconnecté", "info");
+    });
+
+    document.getElementById("btnPublish").addEventListener("click", async () => {
+      const file = document.getElementById("mediaFile").files[0];
+      const caption = document.getElementById("caption").value.trim();
+      const category = document.getElementById("category").value;
+      const pubMsg = document.getElementById("pubMsg");
+      
+      if (!file) { pubMsg.className = "msg err"; pubMsg.textContent = "❌ Choisis un média"; return; }
+      const mediaType = file.type.startsWith("image/") ? "image" : file.type.startsWith("video/") ? "video" : null;
+      if (!mediaType) { pubMsg.className = "msg err"; pubMsg.textContent = "❌ Format non supporté"; return; }
+      
+      pubMsg.className = "msg muted";
+      pubMsg.textContent = "⏳ Upload...";
+      
+      try {
+        const profile = await getProfile();
+        if (!profile?.username) throw new Error("Profil invalide");
+        
+        const ext = file.name.split('.').pop();
+        const path = `public/${currentUser.id}/${Date.now()}_${Math.random().toString(36).substr(2, 6)}.${ext}`;
+        const { error: uploadError } = await supabase.storage.from("media").upload(path, file);
+        if (uploadError) throw uploadError;
+        
+        const { data: urlData } = supabase.storage.from("media").getPublicUrl(path);
+        const { error: insertError } = await supabase.from("posts").insert({
+          user_id: currentUser.id, user_username: profile.username, caption: caption || null,
+          media_url: urlData.publicUrl, media_type: mediaType, category: category
         });
-    }
-    
-    await loadSocialFeed();
-  }
-  
-  async function showCommentModal(postId) {
-    const comment = prompt("Écrivez votre commentaire :");
-    if (!comment) return;
-    
-    if (!currentUser) {
-      showToast("Connectez-vous pour commenter", true);
-      return;
-    }
-    
-    const { error } = await supabaseClient
-      .from('comments')
-      .insert({
-        post_id: postId,
-        user_id: currentUser.id,
-        content: comment,
-        created_at: new Date().toISOString()
+        if (insertError) throw insertError;
+        
+        document.getElementById("caption").value = "";
+        document.getElementById("mediaFile").value = "";
+        pubMsg.className = "msg ok";
+        pubMsg.textContent = "✅ Publié !";
+        showToast("📤 Post publié !", "ok");
+        loadFeed();
+      } catch(e) {
+        pubMsg.className = "msg err";
+        pubMsg.textContent = e.message;
+        showToast(e.message, "err");
+      }
+    });
+
+    document.querySelectorAll(".filter-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        currentFilter = btn.dataset.filter;
+        loadFeed();
       });
-    
-    if (error) {
-      showToast("Erreur lors de l'ajout du commentaire", true);
-    } else {
-      showToast("Commentaire ajouté !");
-      await loadSocialFeed();
-    }
-  }
-  
-  // ============================================================
-  // BOUTIQUE (paiement placeholder)
-  // ============================================================
-  function renderProducts() {
-    const productsDiv = document.getElementById('productsList');
-    productsDiv.innerHTML = demoProducts.map(product => `
-      <div class="post-item">
-        <div class="row" style="justify-content: space-between">
-          <div>
-            <strong>${product.name}</strong>
-            <div class="muted">${product.price.toLocaleString()} Ar</div>
-          </div>
-          <button class="secondary" onclick="addToCart(${product.id})">Ajouter au panier</button>
-        </div>
-      </div>
-    `).join('');
-  }
-  
-  function addToCart(productId) {
-    const product = demoProducts.find(p => p.id === productId);
-    const existing = shoppingCart.find(item => item.id === productId);
-    if (existing) {
-      existing.quantity += 1;
-    } else {
-      shoppingCart.push({ ...product, quantity: 1 });
-    }
-    renderCart();
-    showToast(`${product.name} ajouté au panier`);
-  }
-  
-  function renderCart() {
-    const cartDiv = document.getElementById('cartItemsList');
-    if (shoppingCart.length === 0) {
-      cartDiv.innerHTML = '<div class="muted">Panier vide</div>';
-      return;
-    }
-    
-    let total = 0;
-    cartDiv.innerHTML = shoppingCart.map(item => {
-      total += item.price * item.quantity;
-      return `
-        <div class="post-item">
-          <div class="row" style="justify-content: space-between">
-            <div>
-              <strong>${item.name}</strong>
-              <div class="muted">${item.price.toLocaleString()} Ar x ${item.quantity}</div>
-            </div>
-            <button class="danger" style="padding: 5px 10px" onclick="removeFromCart(${item.id})">Supprimer</button>
-          </div>
-        </div>
-      `;
-    }).join('');
-    
-    cartDiv.innerHTML += `<div class="hr"></div><div><strong>Total: ${total.toLocaleString()} Ar</strong></div>`;
-  }
-  
-  function removeFromCart(productId) {
-    shoppingCart = shoppingCart.filter(item => item.id !== productId);
-    renderCart();
-  }
-  
-  async function processCheckout() {
-    if (!currentUser) {
-      showToast("Connectez-vous pour acheter", true);
-      return;
-    }
-    
-    if (shoppingCart.length === 0) {
-      showToast("Votre panier est vide", true);
-      return;
-    }
-    
-    const total = shoppingCart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    
-    // Vérifier le solde
-    const { data: wallet } = await supabaseClient
-      .from('wallets')
-      .select('balance')
-      .eq('user_id', currentUser.id)
-      .single();
-    
-    if ((wallet?.balance || 0) < total) {
-      showToast("Solde insuffisant pour cet achat", true);
-      return;
-    }
-    
-    // Paiement placeholder (simulation)
-    const paymentResult = await processPaymentPlaceholder(total, 'mvola');
-    
-    if (paymentResult.success) {
-      // Débiter le wallet
-      const newBalance = (wallet?.balance || 0) - total;
-      await supabaseClient
-        .from('wallets')
-        .update({ balance: newBalance, updated_at: new Date().toISOString() })
-        .eq('user_id', currentUser.id);
-      
-      // Ajouter la transaction
-      await supabaseClient
-        .from('transactions')
-        .insert({
-          user_id: currentUser.id,
-          type: 'shop_purchase',
-          amount: -total,
-          currency: 'MGA',
-          status: 'completed',
-          provider: 'mvola',
-          external_ref: paymentResult.transactionId,
-          created_at: new Date().toISOString()
-        });
-      
-      showToast(`Achat effectué ! Total: ${total.toLocaleString()} Ar`);
-      shoppingCart = [];
-      renderCart();
-      await loadWalletData();
-      await loadDashboardStats();
-    } else {
-      showToast("Paiement échoué", true);
-    }
-  }
-  
-  // Fonction placeholder pour le paiement (conforme à ta demande)
-  async function processPaymentPlaceholder(amount, method) {
-    console.log(`🔌 Paiement placeholder: ${amount} Ar via ${method}`);
-    // Simulation d'un délai réseau
-    await new Promise(resolve => setTimeout(resolve, 500));
-    return { success: true, transactionId: `DEMO_${Date.now()}` };
-  }
-  
-  // ============================================================
-  // MESSAGES (conversations)
-  // ============================================================
-  async function loadMessages() {
-    if (!currentUser) {
-      document.getElementById('messagesList').innerHTML = '<div class="muted">Connectez-vous pour voir vos messages</div>';
-      return;
-    }
-    
-    const { data: messages } = await supabaseClient
-      .from('messages')
-      .select('*, sender:sender_id(display_name), receiver:receiver_id(display_name)')
-      .or(`sender_id.eq.${currentUser.id},receiver_id.eq.${currentUser.id}`)
-      .order('created_at', { ascending: false })
-      .limit(50);
-    
-    const messagesDiv = document.getElementById('messagesList');
-    if (!messages || messages.length === 0) {
-      messagesDiv.innerHTML = '<div class="muted">Aucun message</div>';
-      return;
-    }
-    
-    messagesDiv.innerHTML = messages.map(msg => {
-      const isFromMe = msg.sender_id === currentUser.id;
-      const otherPerson = isFromMe ? msg.receiver?.display_name : msg.sender?.display_name;
-      return `
-        <div class="message-item">
-          <div><strong>${otherPerson || 'Système'}</strong> <span class="muted">${new Date(msg.created_at).toLocaleString()}</span></div>
-          <div style="margin-top: 5px">${escapeHtml(msg.text)}</div>
-        </div>
-      `;
-    }).join('');
-  }
-  
-  async function sendMessage() {
-    if (!currentUser) {
-      showToast("Connectez-vous pour envoyer des messages", true);
-      return;
-    }
-    
-    const messageText = document.getElementById('messageInput').value.trim();
-    if (!messageText) return;
-    
-    // Pour la démo, on envoie à un destinataire système (admin)
-    const { error } = await supabaseClient
-      .from('messages')
-      .insert({
-        sender_id: currentUser.id,
-        receiver_id: '00000000-0000-0000-0000-000000000000', // ID système
-        text: messageText,
-        created_at: new Date().toISOString()
-      });
-    
-    if (error) {
-      showToast("Erreur lors de l'envoi", true);
-      console.error(error);
-    } else {
-      showToast("Message envoyé !");
-      document.getElementById('messageInput').value = '';
-      await loadMessages();
-    }
-  }
-  
-  // ============================================================
-  // ADMIN PANEL
-  // ============================================================
-  async function loadAdminData() {
-    if (!currentUser || currentUserRole !== 'admin') {
-      document.getElementById('adminStatsPanel').innerHTML = '<div class="muted">Accès réservé aux administrateurs</div>';
-      return;
-    }
-    
-    // Stats générales
-    const { count: usersCount } = await supabaseClient.from('users').select('*', { count: 'exact', head: true });
-    const { count: driversCount } = await supabaseClient.from('users').select('*', { count: 'exact', head: true }).eq('role', 'driver');
-    const { count: ridesCount } = await supabaseClient.from('rides').select('*', { count: 'exact', head: true });
-    const { count: postsCount } = await supabaseClient.from('posts').select('*', { count: 'exact', head: true });
-    const { count: pendingKyc } = await supabaseClient.from('driver_kyc').select('*', { count: 'exact', head: true }).eq('status', 'pending');
-    
-    document.getElementById('adminStatsPanel').innerHTML = `
-      <div class="grid-2" style="margin-bottom: 20px">
-        <div class="post-item">
-          <strong>👥 Utilisateurs</strong>
-          <div style="font-size: 24px">${usersCount || 0}</div>
-        </div>
-        <div class="post-item">
-          <strong>🚗 Chauffeurs</strong>
-          <div style="font-size: 24px">${driversCount || 0}</div>
-        </div>
-        <div class="post-item">
-          <strong>✅ Courses</strong>
-          <div style="font-size: 24px">${ridesCount || 0}</div>
-        </div>
-        <div class="post-item">
-          <strong>📝 Publications</strong>
-          <div style="font-size: 24px">${postsCount || 0}</div>
-        </div>
-        <div class="post-item">
-          <strong>📋 KYC en attente</strong>
-          <div style="font-size: 24px">${pendingKyc || 0}</div>
-        </div>
-      </div>
-      <div class="muted">Panel d'administration - VTC Mahajanga</div>
-    `;
-  }
-  
-  // ============================================================
-  // PROFIL
-  // ============================================================
-  async function loadProfileData() {
-    if (!currentUser) {
-      document.getElementById('profileDetails').innerHTML = '<div class="muted">Connectez-vous pour voir votre profil</div>';
-      return;
-    }
-    
-    document.getElementById('profileDetails').innerHTML = `
-      <div><strong>Email:</strong> ${currentUser.email}</div>
-      <div><strong>Rôle:</strong> ${currentUserRole}</div>
-      <div><strong>Nom d'affichage:</strong> ${currentUserProfile?.display_name || 'Non défini'}</div>
-      <div><strong>ID utilisateur:</strong> <span class="muted">${currentUser.id?.slice(0, 8)}...</span></div>
-    `;
-  }
-  
-  // ============================================================
-  // INITIALISATION ET ÉCOUTEURS D'ÉVÉNEMENTS
-  // ============================================================
-  async function checkExistingSession() {
-    const { data: { session } } = await supabaseClient.auth.getSession();
-    if (session?.user) {
-      const { data: profile } = await supabaseClient
-        .from('users')
-        .select('*')
-        .eq('user_id', session.user.id)
-        .single();
-      
-      currentUser = session.user;
-      currentUserProfile = profile;
-      currentUserRole = profile?.role || 'passenger';
-      updateUserStatusDisplay();
-      loadDashboardStats();
-    }
-  }
-  
-  // Rendre les fonctions globales pour les appels HTML
-  window.goToPage = goToPage;
-  window.handleLogin = handleLogin;
-  window.handleSignup = handleSignup;
-  window.handleLogout = handleLogout;
-  window.searchDrivers = searchDrivers;
-  window.createRideRequest = createRideRequest;
-  window.selectDriverForRide = selectDriverForRide;
-  window.createPost = createPost;
-  window.toggleLikePost = toggleLikePost;
-  window.showCommentModal = showCommentModal;
-  window.addToCart = addToCart;
-  window.removeFromCart = removeFromCart;
-  window.processCheckout = processCheckout;
-  window.sendMessage = sendMessage;
-  window.addFundsToWallet = addFundsToWallet;
-  window.loadAdminData = loadAdminData;
-  
-  // Démarrer l'application
-  renderProducts();
-  renderCart();
-  checkExistingSession();
+    });
+
+    // ===================== AUTH INIT =====================
+    supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session?.user) {
+        currentUser = session.user;
+        starCache.clear();
+        await updateBadge();
+        loadFeed();
+      } else {
+        currentUser = null;
+        starCache.clear();
+        await updateBadge();
+        loadFeed();
+      }
+    });
+
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      currentUser = user;
+      updateBadge();
+      loadFeed();
+    });
+  })();
 </script>
 </body>
-            </html>
+  </html>
