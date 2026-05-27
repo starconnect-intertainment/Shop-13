@@ -1,401 +1,2072 @@
-<!dOCTYPE html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>HOLDEST ⭐ • RÉSEAU SOCIAL</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover, shrink-to-fit=no">
+    <title>HOLDEST Conciergerie × Junga Tour | Madagascar authentique</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --primary-color: #ff2d55; --secondary-color: #5856d6; --dark-bg: #000000; --card-bg: #1c1c1e;
-            --text-primary: #ffffff; --text-secondary: #8e8e93; --accent: #32d74b; --youtube-red: #ff0000;
-            --gold: #ffd700; --navbar-height: 60px; --header-height: 60px;
-            --safe-area-top: env(safe-area-inset-top, 0px); --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { font-size: 16px; -webkit-text-size-adjust: 100%; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f8faf7;
+            color: #1a2b22;
+            overflow-x: hidden;
+            padding-bottom: 80px;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            max-width: 100vw;
         }
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; -webkit-font-smoothing: antialiased; }
-        html, body { height: 100%; width: 100%; overflow: hidden; background-color: var(--dark-bg); color: var(--text-primary); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; position: fixed; }
+        h1, h2, h3, .serif { font-family: 'Playfair Display', serif; }
+        :root {
+            --primary: #c85a17;
+            --primary-dark: #a34410;
+            --green: #2b6e3c;
+            --green-dark: #1e4a2f;
+            --gold: #e6b422;
+            --text-soft: #4a5b52;
+            --shadow-sm: 0 4px 12px rgba(0,0,0,0.04);
+            --shadow-md: 0 8px 20px rgba(0,0,0,0.06);
+            --shadow-lg: 0 16px 32px rgba(0,0,0,0.08);
+            --border-soft: 1px solid #e7ede6;
+            --radius-sm: 12px;
+            --radius-md: 20px;
+            --radius-lg: 28px;
+            --radius-xl: 48px;
+        }
 
-        /* Camera */
-        .camera-container { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: #000; z-index: 4000; display: flex; flex-direction: column; padding-top: var(--safe-area-top); }
-        .camera-container.hidden { display: none; }
-        .camera-header { padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; z-index: 10; position: absolute; top: 0; left: 0; right: 0; padding-top: calc(12px + var(--safe-area-top)); }
-        .camera-preview { flex: 1; position: relative; overflow: hidden; width: 100%; display: flex; align-items: center; justify-content: center; }
-        .camera-feed { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; }
-        .camera-feed.front { transform: scaleX(-1); }
-        .camera-controls { padding: 20px; display: flex; flex-direction: column; align-items: center; z-index: 10; position: absolute; bottom: 0; left: 0; right: 0; padding-bottom: calc(30px + var(--safe-area-bottom)); }
-        .capture-btn { width: 78px; height: 78px; border-radius: 50%; background-color: white; border: 6px solid rgba(255, 255, 255, 0.2); margin-bottom: 25px; transition: all 0.2s; cursor: pointer; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3); }
-        .capture-btn:active { transform: scale(0.95); }
-        .capture-btn.recording { background-color: var(--primary-color); animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(255, 45, 85, 0.7); } 70% { box-shadow: 0 0 0 20px rgba(255, 45, 85, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 45, 85, 0); } }
-        .camera-options { display: flex; justify-content: space-between; width: 100%; max-width: 350px; }
-        .camera-option { background: rgba(0, 0, 0, 0.3); border: none; color: white; font-size: 1.3rem; padding: 12px; border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px); cursor: pointer; }
-        .switch-camera { position: absolute; top: 20px; right: 20px; background-color: rgba(0, 0, 0, 0.5); width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; border: none; z-index: 100; backdrop-filter: blur(10px); cursor: pointer; }
+        .app-header {
+            background: white; padding: clamp(10px,2vw,16px) clamp(12px,3vw,24px);
+            position: sticky; top: 0; z-index: 100;
+            backdrop-filter: blur(16px); background: rgba(255,255,255,0.94);
+            border-bottom: var(--border-soft); display: flex;
+            align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+        }
+        .header-left { display: flex; align-items: center; gap: clamp(8px,2vw,14px); }
+        .logo-icon {
+            font-size: clamp(1.5rem,3vw,2.2rem); color: var(--primary);
+            background: #fef4ed; border-radius: var(--radius-md); padding: clamp(4px,1vw,8px);
+        }
+        .header-text h1 { font-size: clamp(1rem,2.5vw,1.4rem); font-weight: 700; color: var(--green-dark); }
+        .header-text p { font-size: clamp(0.6rem,1.2vw,0.75rem); color: var(--text-soft); }
+        
+        /* Style pour le nom utilisateur cliquable */
+        .user-profile-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            padding: 6px 12px;
+            border-radius: var(--radius-xl);
+            background: #f0f7f2;
+            transition: all 0.2s;
+        }
+        .user-profile-btn:hover {
+            background: var(--green);
+            color: white;
+        }
+        .user-profile-btn i { font-size: 1rem; }
+        
+        .header-buttons { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+        .btn-sm {
+            padding: clamp(6px,1vw,8px) clamp(10px,2vw,16px); border-radius: var(--radius-xl);
+            font-size: clamp(0.65rem,1.2vw,0.78rem); font-weight: 600; cursor: pointer;
+            border: none; font-family: 'Inter', sans-serif; white-space: nowrap;
+            transition: all 0.2s;
+        }
+        .btn-outline { background: transparent; border: 2px solid var(--primary); color: var(--primary); }
+        .btn-filled { background: var(--primary); color: white; }
+        .btn-dark { background: #1a1a1a; border: 2px solid #ff8c42; color: #ff8c42; }
+        .btn-green { background: var(--green); color: white; border: none; }
 
-        /* Navbar */
-        .navbar { position: fixed; bottom: 0; left: 0; right: 0; height: calc(var(--navbar-height) + var(--safe-area-bottom)); background-color: rgba(28, 28, 30, 0.98); backdrop-filter: blur(30px); display: flex; justify-content: space-around; align-items: center; z-index: 1000; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: var(--safe-area-bottom); }
-        .navbar.hidden { display: none; }
-        .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px 12px; color: var(--text-secondary); text-decoration: none; font-size: 0.65rem; transition: all 0.3s; border-radius: 12px; min-width: 60px; cursor: pointer; border: none; background: none; }
-        .nav-item.active { color: var(--primary-color); }
-        .nav-item i { font-size: 1.3rem; margin-bottom: 4px; }
-        .nav-item.camera { background: linear-gradient(135deg, var(--primary-color), #ff375f); color: white; width: 56px; height: 56px; border-radius: 50%; margin-top: -28px; box-shadow: 0 6px 20px rgba(255, 45, 85, 0.4); border: 4px solid var(--dark-bg); }
+        .concept-badge {
+            background: linear-gradient(135deg, #fff9f2, #fff3e0);
+            margin: clamp(10px,2vw,16px) clamp(10px,3vw,20px);
+            padding: clamp(12px,2vw,16px) clamp(14px,3vw,20px);
+            border-radius: var(--radius-lg); font-size: clamp(0.75rem,1.5vw,0.85rem);
+            font-weight: 500; color: var(--primary-dark); border-left: 5px solid var(--primary);
+            display: flex; gap: 12px; align-items: flex-start; box-shadow: var(--shadow-sm);
+        }
+        .search-wrapper {
+            background: white; margin: 0 clamp(10px,3vw,20px) clamp(10px,2vw,16px);
+            border-radius: var(--radius-xl); padding: 4px 4px 4px clamp(14px,3vw,20px);
+            box-shadow: var(--shadow-sm); border: var(--border-soft); display: flex; gap: 8px; align-items: center;
+        }
+        #searchInput { flex: 1; padding: clamp(10px,2vw,14px) 0; border: none; outline: none; font-size: clamp(0.85rem,1.6vw,0.95rem); background: transparent; min-width: 0; }
+        #searchBtn { background: var(--green); border: none; color: white; padding: clamp(10px,2vw,12px) clamp(16px,3vw,22px); border-radius: var(--radius-xl); font-weight: 600; cursor: pointer; white-space: nowrap; }
 
-        /* Header */
-        .header { padding: 15px; display: flex; justify-content: space-between; align-items: center; background-color: var(--dark-bg); position: fixed; top: 0; left: 0; right: 0; z-index: 1000; height: var(--header-height); border-bottom: 1px solid rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px); padding-top: calc(15px + var(--safe-area-top)); }
-        .header.hidden { display: none; }
-        .logo { font-size: 1.4rem; font-weight: 800; background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-        .header-actions { display: flex; gap: 15px; align-items: center; }
-        .header-btn { background: none; border: none; color: var(--text-primary); font-size: 1.2rem; padding: 8px; border-radius: 50%; cursor: pointer; }
-        .header-profile { display: flex; align-items: center; gap: 10px; cursor: pointer; }
-        .header-avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.9rem; border: 2px solid rgba(255, 255, 255, 0.1); }
+        .screen { display: none; padding: 0 clamp(10px,3vw,20px) clamp(10px,3vw,20px); animation: fadeSlide 0.3s ease; }
+        .screen.active { display: block; }
+        @keyframes fadeSlide { from { opacity: 0; transform: translateY(12px);} to { opacity: 1; transform: translateY(0);} }
+        .section-title { font-size: clamp(1.3rem,3vw,1.8rem); font-weight: 700; margin-bottom: 6px; color: var(--green-dark); }
+        .section-subtitle { font-size: clamp(0.8rem,1.5vw,0.9rem); margin-bottom: 20px; color: var(--text-soft); }
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: clamp(12px,2vw,20px);
+            margin-top: 16px;
+        }
+        .card {
+            background: white; border-radius: var(--radius-lg); overflow: hidden;
+            box-shadow: var(--shadow-sm); transition: transform 0.25s, box-shadow 0.25s;
+            cursor: pointer; border: var(--border-soft);
+        }
+        .card:active { transform: scale(0.98); }
+        .card-img { height: clamp(150px,25vw,200px); background-size: cover; background-position: center; position: relative; }
+        .overlay-badge {
+            position: absolute; top: clamp(10px,2vw,16px); left: clamp(10px,2vw,16px);
+            background: rgba(255,255,255,0.95); padding: clamp(4px,1vw,6px) clamp(10px,2vw,14px);
+            border-radius: var(--radius-xl); font-size: clamp(0.6rem,1vw,0.7rem); font-weight: 700; color: var(--primary-dark);
+        }
+        .card-content { padding: clamp(14px,2vw,18px) clamp(14px,2vw,20px); }
+        .card-content h3 { font-size: clamp(1rem,2vw,1.2rem); font-weight: 700; margin-bottom: 6px; }
+        .card-content p { font-size: clamp(0.75rem,1.4vw,0.85rem); color: var(--text-soft); margin-bottom: 12px; }
+        .card-meta { display: flex; gap: 12px; font-size: clamp(0.65rem,1.1vw,0.75rem); color: #7a8c80; margin-bottom: 12px; flex-wrap: wrap; }
+        .reserve-btn, .outline-btn {
+            padding: clamp(10px,2vw,12px) clamp(16px,3vw,18px); border-radius: var(--radius-xl);
+            font-weight: 600; cursor: pointer; width: 100%; font-size: clamp(0.75rem,1.3vw,0.85rem);
+            margin-top: 8px; border: none; font-family: 'Inter', sans-serif;
+        }
+        .reserve-btn { background: var(--green); color: white; }
+        .outline-btn { background: transparent; border: 2px solid var(--green); color: var(--green); }
 
-        /* Main Content */
-        .main-content { height: 100vh; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; padding-bottom: calc(var(--navbar-height) + var(--safe-area-bottom)); padding-top: var(--header-height); }
-        .main-content.hidden { display: none; }
-        .page { display: none; min-height: 100vh; width: 100%; }
-        .page.active { display: block; animation: fadeIn 0.3s ease; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .tab-bar {
+            position: fixed; bottom: 0; left: 0; width: 100%;
+            background: rgba(255,255,255,0.96); backdrop-filter: blur(20px);
+            display: flex; justify-content: space-around; align-items: center;
+            padding: clamp(6px,1.5vw,10px) clamp(2px,1vw,8px) max(16px, env(safe-area-inset-bottom));
+            border-top: var(--border-soft); z-index: 200;
+        }
+        .tab-item {
+            display: flex; flex-direction: column; align-items: center; gap: 2px;
+            font-size: clamp(0.55rem,1vw,0.68rem); color: #8e9a9e; background: none; border: none; cursor: pointer;
+            padding: 4px 6px;
+        }
+        .tab-item.active { color: var(--primary); font-weight: 600; }
+        .tab-item i { font-size: clamp(1rem,2vw,1.4rem); }
 
-        /* Home Feed */
-        #homePage, #discoverPage, #profilePage, #youtubePage, #gamesPage { padding: 15px; padding-bottom: 80px; }
-        .video-feed { display: flex; flex-direction: column; gap: 20px; }
+        .budget-table { background: white; border-radius: var(--radius-md); overflow: hidden; margin-bottom: 16px; }
+        .budget-table .row { display: flex; justify-content: space-between; padding: clamp(10px,2vw,14px) clamp(12px,2vw,18px); border-bottom: 1px solid #f0f4f0; font-size: clamp(0.8rem,1.4vw,0.9rem); }
+        .budget-table .row.total { background: #f0f7f2; font-weight: 700; }
+        .budget-table .row.header-row { background: var(--green); color: white; font-weight: 700; }
+        .budget-table .row.acompte { background: #fffdf5; }
+        .budget-table .row.dossier { background: #fff8e1; }
+        .price-eur { font-weight: 600; color: var(--primary-dark); }
+        .price-ar { font-size: 0.75rem; color: #7a8c80; display: block; }
+        .budget-selector, .formula-selector, .location-selector, .people-selector { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+        .budget-selector button, .formula-selector button, .location-selector button, .people-selector button {
+            flex: 1; min-width: 60px; padding: clamp(8px,1.5vw,10px) clamp(6px,1vw,8px);
+            border-radius: var(--radius-xl); border: 2px solid #e0e6e1;
+            background: white; font-weight: 600; cursor: pointer; font-size: clamp(0.7rem,1.2vw,0.82rem);
+        }
+        .budget-selector button.active, .formula-selector button.active, .location-selector button.active, .people-selector button.active { background: var(--green); color: white; }
+        .avantages-box {
+            background: #f9fdf9; border-radius: var(--radius-md); padding: 16px; margin: 16px 0;
+            border: 1px solid #d0e8d0;
+        }
+        .avantages-box h4 { color: var(--green-dark); margin-bottom: 8px; font-size: clamp(0.9rem,1.5vw,1rem); }
+        .avantages-box ul { margin-left: 20px; font-size: clamp(0.75rem,1.3vw,0.85rem); color: var(--text-soft); }
+        .detail-box { margin-top: 12px; padding: 12px; border-radius: 12px; font-size: 0.8rem; }
+        .detail-confort { background: #eaf0f7; color: #1e4a6e; border: 1px solid #1e4a6e; }
+        .detail-premium { background: #f7efe0; color: #6e4a1e; border: 1px solid #6e4a1e; }
+        .detail-luxe { background: #f7e0e0; color: #6e1e1e; border: 1px solid #6e1e1e; }
+        .reduction-badge { background: #e74c3c; color: white; padding: 2px 8px; border-radius: var(--radius-xl); font-size: 0.7rem; font-weight: 700; display: inline-block; margin-left: 6px; }
 
-        /* Post Card */
-        .post { background: var(--card-bg); border-radius: 20px; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.05); }
-        .post-header { display: flex; align-items: center; gap: 12px; padding: 15px; }
-        .post-avatar { width: 44px; height: 44px; background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 18px; cursor: pointer; }
-        .post-info { flex: 1; }
-        .post-author { font-weight: 800; font-size: 15px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; cursor: pointer; }
-        .star-certificate { display: inline-flex; background: linear-gradient(135deg, #ffd700, #ffaa00); border-radius: 50%; width: 20px; height: 20px; align-items: center; justify-content: center; box-shadow: 0 0 8px gold; }
-        .star-certificate i { font-size: 11px; color: #000; }
-        .post-time { font-size: 11px; color: var(--text-secondary); }
-        .post-caption { padding: 0 15px 10px; font-size: 14px; line-height: 1.4; }
-        .hashtag { color: #b7ff00; font-weight: bold; }
-        .post-media { width: 100%; max-height: 500px; object-fit: contain; background: #000; }
-        .post-actions { display: flex; gap: 20px; padding: 12px 15px; border-top: 1px solid rgba(255, 255, 255, 0.05); }
-        .action-btn { background: none; border: none; color: white; display: flex; align-items: center; gap: 6px; font-size: 14px; cursor: pointer; padding: 8px 16px; border-radius: 20px; }
-        .action-btn:active { background: rgba(255, 255, 255, 0.1); }
-        .action-btn.liked { background: rgba(255, 45, 85, 0.2); color: var(--primary-color); }
-        .comments-section { padding: 0 15px 15px; border-top: 1px solid rgba(255, 255, 255, 0.05); display: none; }
-        .comments-section.open { display: block; }
-        .comment-input-group { display: flex; gap: 10px; padding: 15px 0; }
-        .comment-input { flex: 1; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px; padding: 10px 16px; color: white; font-size: 14px; outline: none; }
-        .comment-item { padding: 10px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.03); }
-        .comment-user { font-weight: 600; font-size: 13px; color: var(--primary-color); cursor: pointer; }
-        .comment-content { font-size: 13px; margin-top: 4px; word-break: break-word; }
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); z-index: 400; justify-content: center; align-items: center; padding: 20px;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-box {
+            background: white; width: 100%; max-width: 500px; border-radius: var(--radius-lg); padding: clamp(20px,4vw,32px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3); max-height: 90vh; overflow-y: auto;
+        }
+        .modal-box h3 { font-family: 'Playfair Display', serif; font-size: clamp(1.2rem,2.5vw,1.5rem); margin-bottom: 16px; }
+        .modal-box input, .modal-box select, .modal-box textarea {
+            width: 100%; padding: 12px; margin-bottom: 10px; border-radius: var(--radius-sm);
+            border: 1px solid #ddd; font-family: 'Inter', sans-serif; font-size: 0.9rem;
+        }
+        .modal-box textarea { resize: vertical; min-height: 80px; }
+        .modal-box select { background: white; cursor: pointer; }
+        .btn-full {
+            width: 100%; padding: 14px; border-radius: var(--radius-xl); font-weight: 700;
+            cursor: pointer; border: none; font-size: 0.9rem; margin-top: 8px; font-family: 'Inter', sans-serif;
+        }
 
-        /* Profile */
-        .profile-header { text-align: center; padding: 20px; }
-        .profile-avatar-large { width: 90px; height: 90px; border-radius: 50%; background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); display: flex; align-items: center; justify-content: center; font-size: 36px; font-weight: bold; margin: 0 auto 15px; }
-        .profile-name { font-size: 22px; font-weight: bold; }
-        .profile-username { color: var(--text-secondary); margin: 5px 0; }
-        .profile-bio { color: var(--text-secondary); margin: 10px 0; font-size: 14px; }
-        .profile-stats { display: flex; justify-content: center; gap: 30px; margin: 15px 0; }
-        .stat { text-align: center; cursor: pointer; }
-        .stat-number { font-size: 18px; font-weight: bold; }
-        .stat-label { font-size: 12px; color: var(--text-secondary); }
-        .follow-btn { background: var(--primary-color); color: white; border: none; padding: 10px 30px; border-radius: 25px; font-weight: bold; cursor: pointer; margin: 10px 0; }
-        .follow-btn.following { background: transparent; border: 1px solid var(--text-secondary); color: var(--text-secondary); }
-        .edit-profile-btn { background: rgba(255,255,255,0.1); color: white; border: none; padding: 10px 30px; border-radius: 25px; cursor: pointer; }
+        .faq-grid { display: grid; gap: clamp(10px,2vw,14px); margin-top: 16px; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); }
+        .faq-card { background: white; border-radius: var(--radius-md); padding: 20px; box-shadow: var(--shadow-sm); cursor: pointer; }
+        .faq-card p { display: none; margin-top: 8px; font-size: 0.85rem; color: var(--text-soft); }
+        .faq-card.open p { display: block; }
+        .testimonial-card { background: white; border-radius: var(--radius-lg); padding: 20px; margin-bottom: 14px; }
+        .stars { color: var(--gold); }
+        .tripadvisor-badge { display: inline-block; background: #00aa6c; color: white; font-size: 0.7rem; padding: 2px 8px; border-radius: 20px; margin-left: 8px; cursor: pointer; }
+        .tripadvisor-badge:hover { background: #008a55; }
+        .map-container { border-radius: var(--radius-lg); overflow: hidden; margin: 16px 0; }
+        #madagascarMap { height: clamp(250px,50vw,400px); width: 100%; }
+        .video-container { position: relative; padding-bottom: 56.25%; margin-bottom: 16px; border-radius: var(--radius-lg); overflow: hidden; }
+        .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        .whatsapp-float {
+            position: fixed; bottom: clamp(80px,15vw,100px); right: clamp(10px,3vw,20px);
+            background: #25D366; color: white; border-radius: var(--radius-xl);
+            padding: clamp(8px,2vw,12px) clamp(14px,3vw,20px); font-weight: 600;
+            text-decoration: none; z-index: 99; font-size: clamp(0.75rem,1.3vw,0.85rem);
+            box-shadow: 0 4px 16px rgba(37,211,102,0.4); display: flex; align-items: center; gap: 8px;
+        }
 
-        /* Search & Categories */
-        .search-bar { background: var(--card-bg); border-radius: 12px; padding: 12px 15px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
-        .search-input { background: none; border: none; color: white; flex: 1; outline: none; }
-        .categories-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px; }
-        .category-card { background: var(--card-bg); border-radius: 16px; padding: 20px; text-align: center; cursor: pointer; }
-        .category-icon { font-size: 30px; margin-bottom: 10px; }
-        .category-title { font-weight: 600; }
-        .section-title { font-size: 18px; font-weight: bold; margin: 20px 0 15px; }
+        .roots-interface {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #1a1a1a; z-index: 1000; overflow-y: auto; color: #f0f0f0;
+        }
+        .roots-interface.active { display: block; }
+        .roots-header { background: #ff8c42; color: #1a1a1a; padding: 16px 20px; display: flex; justify-content: space-between; position: sticky; top: 0; z-index: 10; }
+        .roots-header h2 { font-size: 1.3rem; font-weight: 800; }
+        .roots-close-btn { background: #1a1a1a; color: #ff8c42; border: none; padding: 8px 16px; border-radius: 20px; font-weight: 700; cursor: pointer; }
+        .roots-content { padding: 16px; }
+        .roots-section { background: #2a2a2a; border-radius: 20px; padding: 20px; margin-bottom: 16px; border-left: 4px solid #ff8c42; }
+        .roots-section h3 { color: #ff8c42; margin-bottom: 12px; }
+        .roots-section ul { list-style: none; }
+        .roots-section ul li { padding: 8px 0; border-bottom: 1px solid #3a3a3a; font-size: 0.9rem; }
+        .roots-price-tag { background: #ff8c42; color: #1a1a1a; padding: 4px 10px; border-radius: 12px; font-weight: 700; font-size: 0.8rem; float: right; }
+        .roots-btn { background: #ff8c42; color: #1a1a1a; border: none; padding: 12px 20px; border-radius: 25px; font-weight: 700; width: 100%; margin-top: 12px; cursor: pointer; }
+        .roots-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+        .roots-grid-item { background: #333; border-radius: 12px; padding: 14px; text-align: center; }
+        .hygiene-box {
+            background: #2a3a2a; border: 2px solid #27ae60; border-radius: 16px;
+            padding: 14px; margin-top: 12px; text-align: center;
+        }
+        .hygiene-box i { color: #27ae60; font-size: 1.5rem; margin-bottom: 6px; }
+        .roots-image {
+            width: 100%; height: 180px; background-size: cover; background-position: center;
+            border-radius: 16px; margin-bottom: 12px;
+        }
+        .acompte-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+        .acompte-option {
+            background: #333; border: 2px solid #555; border-radius: 12px; padding: 14px; text-align: center;
+            cursor: pointer; transition: all 0.2s; color: #ccc;
+        }
+        .acompte-option:hover, .acompte-option.selected { border-color: #ff8c42; color: #ff8c42; background: #2a2a2a; }
+        .acompte-option i { font-size: 1.5rem; margin-bottom: 6px; display: block; }
+        .origin-info-box {
+            background: #fff9f2; border: 2px solid var(--primary); border-radius: 16px;
+            padding: 16px; margin-bottom: 20px;
+        }
+        .origin-info-box h4 { color: var(--primary-dark); margin-bottom: 8px; }
+        .origin-info-box p { font-size: 0.85rem; color: var(--text-soft); }
 
-        /* Games */
-        .games-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
-        .game-card { background: var(--card-bg); border-radius: 16px; padding: 20px; text-align: center; cursor: pointer; }
-        .game-icon { font-size: 40px; margin-bottom: 10px; }
-        .game-title { font-weight: 600; }
+        .partners-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+        .partner-card {
+            background: white;
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            transition: transform 0.2s;
+            border: var(--border-soft);
+        }
+        .partner-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+        .partner-card .partner-header { background: #f0f7f2; padding: 12px 16px; border-bottom: 1px solid #e0e8e0; }
+        .partner-card .partner-header h4 { color: var(--green-dark); font-size: 1.1rem; display: flex; align-items: center; gap: 8px; justify-content: space-between; }
+        .partner-card .partner-type { font-size: 0.7rem; background: var(--green); color: white; padding: 3px 10px; border-radius: 30px; }
+        .partner-card .partner-content { padding: 16px; }
+        .partner-card .partner-content p { font-size: 0.85rem; color: var(--text-soft); margin-bottom: 12px; }
+        .partner-card .partner-contact { font-size: 0.8rem; color: var(--primary-dark); border-top: 1px solid #eee; padding-top: 10px; margin-top: 8px; }
 
-        /* YouTube */
-        .youtube-video-card { background: var(--card-bg); border-radius: 16px; overflow: hidden; margin-bottom: 15px; cursor: pointer; }
-        .youtube-thumbnail { width: 100%; height: 180px; object-fit: cover; }
-        .youtube-video-info { padding: 12px; }
-        .youtube-video-title { font-weight: 600; margin-bottom: 5px; }
-        .youtube-channel { font-size: 12px; color: var(--text-secondary); }
+        .programme-detail {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid var(--border-soft);
+        }
+        .programme-detail h4 { color: var(--green-dark); margin-bottom: 12px; font-size: 1.1rem; }
+        .jour-item {
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            gap: 12px;
+        }
+        .jour-num { font-weight: 700; color: var(--primary); min-width: 50px; }
+        .jour-desc { flex: 1; }
 
-        /* Modal & Auth */
-        .auth-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--dark-bg); z-index: 10000; display: flex; flex-direction: column; justify-content: center; padding: 20px; overflow-y: auto; }
-        .auth-container.hidden { display: none; }
-        .auth-form { background: var(--card-bg); border-radius: 20px; padding: 30px; border: 1px solid rgba(255,255,255,0.1); max-width: 400px; margin: 0 auto; width: 100%; }
-        .auth-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 10px; text-align: center; }
-        .form-group { margin-bottom: 20px; }
-        .form-label { display: block; margin-bottom: 8px; color: var(--text-secondary); }
-        .form-input, .form-textarea { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 14px; color: white; font-size: 1rem; }
-        .auth-btn { width: 100%; background: linear-gradient(135deg, var(--primary-color), #ff375f); color: white; border: none; padding: 16px; border-radius: 12px; font-size: 1rem; font-weight: 600; cursor: pointer; margin-top: 10px; }
-        .auth-switch { text-align: center; margin-top: 25px; color: var(--text-secondary); }
-        .auth-switch a { color: var(--primary-color); cursor: pointer; }
-        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--dark-bg); z-index: 5000; display: none; flex-direction: column; }
-        .modal.active { display: flex; }
-        .modal-header { padding: 15px; display: flex; justify-content: space-between; align-items: center; background: rgba(28,28,30,0.9); border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .modal-content { flex: 1; padding: 20px; overflow-y: auto; }
-        .close-btn { background: none; border: none; color: white; font-size: 1.2rem; cursor: pointer; }
+        .extras-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 12px;
+            margin: 16px 0;
+        }
+        .extra-card {
+            background: #f9fdf9;
+            border-radius: var(--radius-md);
+            padding: 12px;
+            text-align: center;
+            border: 1px solid #e0e8e0;
+            cursor: pointer;
+        }
+        .extra-card.selected { background: var(--green); color: white; border-color: var(--green); }
+        .extra-card.selected .extra-price { color: white; }
+        .extra-price { font-weight: 700; color: var(--primary-dark); margin-top: 6px; font-size: 0.8rem; }
 
-        #toastContainer { position: fixed; bottom: 80px; left: 20px; right: 20px; z-index: 2000; }
-        .toast { background: var(--card-bg); border-left: 4px solid var(--primary-color); padding: 12px 20px; border-radius: 12px; margin-bottom: 10px; animation: slideIn 0.3s ease; }
-        @keyframes slideIn { from { transform: translateX(-100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        .loading-spinner { text-align: center; padding: 60px; color: var(--text-secondary); }
-        .loading-spinner i { animation: spin 1s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .hidden { display: none !important; }
-        .text-center { text-align: center; }
-        .mt-10 { margin-top: 10px; }
-        .p-20 { padding: 20px; }
-        .user-item { display: flex; align-items: center; justify-content: space-between; padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .user-info { display: flex; align-items: center; gap: 12px; cursor: pointer; }
-        .user-avatar { width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        .mon-voyage-card {
+            background: linear-gradient(135deg, #fff9f2, #fff3e0);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 2px solid var(--primary);
+        }
+        
+        /* Espace Manager - caché par défaut (visible seulement pour admin) */
+        .manager-badge {
+            background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
+            color: #ff8c42;
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            margin-top: 20px;
+            border: 2px solid #ff8c42;
+            text-align: center;
+            display: none;
+        }
+        .manager-badge.visible {
+            display: block;
+        }
+        .manager-badge h4 { color: #ff8c42; font-size: 1.2rem; margin-bottom: 12px; }
+        .manager-badge .code-box {
+            background: #333;
+            color: #ff8c42;
+            padding: 10px 16px;
+            border-radius: 12px;
+            font-family: monospace;
+            font-size: 1rem;
+            letter-spacing: 2px;
+            margin: 10px 0;
+            display: inline-block;
+        }
+        .manager-badge .commission-split { display: flex; gap: 12px; justify-content: center; margin-top: 10px; }
+        .manager-badge .commission-split span { background: #333; color: #ff8c42; padding: 6px 14px; border-radius: 20px; font-weight: 600; font-size: 0.85rem; }
+
+        .info-rapide {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .info-rapide-item {
+            flex: 1;
+            min-width: 140px;
+            background: white;
+            border-radius: var(--radius-md);
+            padding: 14px;
+            text-align: center;
+            cursor: pointer;
+            border: 2px solid #e0e6e1;
+            transition: all 0.2s;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+        .info-rapide-item:hover { border-color: var(--primary); }
+        .info-rapide-item i { font-size: 1.5rem; display: block; margin-bottom: 6px; }
+        .sortie-detail-box {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            margin: 16px 0;
+            border: 1px solid #e0e0e0;
+        }
+        .sortie-detail-box h4 { color: var(--primary-dark); margin-bottom: 8px; }
+        .sortie-lieu-card {
+            background: #f9fdf9;
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border-left: 4px solid var(--primary);
+        }
+        .sortie-lieu-card h5 { font-size: 1rem; margin-bottom: 6px; color: var(--green-dark); }
+        .sortie-lieu-card .lieu-type { display: inline-block; background: var(--primary); color: white; padding: 2px 10px; border-radius: 20px; font-size: 0.7rem; margin-bottom: 8px; }
+        .sortie-lieu-card .lieu-horaire { font-size: 0.75rem; color: var(--text-soft); margin-top: 6px; }
+        .sortie-lieu-card .lieu-prix { font-size: 0.8rem; font-weight: 600; color: var(--primary-dark); margin-top: 6px; }
+        .sortie-lieu-card .lieu-conseil { font-size: 0.75rem; background: #fff3e0; padding: 6px; border-radius: 8px; margin-top: 8px; }
+        
+        .exchange-rate-info {
+            background: #e8f0fe;
+            border-radius: 12px;
+            padding: 8px 12px;
+            margin: 10px 0;
+            font-size: 0.7rem;
+            text-align: center;
+            color: #2c3e50;
+        }
+        .toast-notification {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1e4a2f;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            z-index: 1000;
+            animation: fadeOut 3s ease forwards;
+            pointer-events: none;
+        }
+        @keyframes fadeOut {
+            0% { opacity: 1; transform: translateX(-50%) translateY(0); }
+            70% { opacity: 1; }
+            100% { opacity: 0; transform: translateX(-50%) translateY(-20px); visibility: hidden; }
+        }
+        
+        .culture-section {
+            background: linear-gradient(135deg, #fef9e6, #fff6e0);
+            border-radius: 28px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .culture-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+        }
+        .culture-card {
+            background: white;
+            border-radius: 20px;
+            padding: 16px;
+            border-left: 4px solid var(--primary);
+        }
+        .culture-card h5 { color: var(--primary-dark); margin-bottom: 8px; }
+        .culture-card p { font-size: 0.85rem; color: var(--text-soft); }
+
+        /* Bandeau garantie */
+        .garantie-badge {
+            background: #e8f5e9;
+            border: 2px solid #2e7d32;
+            border-radius: var(--radius-md);
+            padding: 14px;
+            margin: 16px 0;
+            text-align: center;
+        }
+        .garantie-badge i { color: #2e7d32; font-size: 1.5rem; margin-bottom: 8px; display: block; }
+
+        /* Profil utilisateur modal */
+        .profile-detail-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .profile-detail-label { font-weight: 600; color: var(--green-dark); }
+        .profile-detail-value { color: var(--text-soft); }
+
+        @media (max-width: 480px) {
+            .header-buttons { gap: 4px; }
+            .btn-sm { padding: 6px 10px; font-size: 0.65rem; }
+            .tab-item { font-size: 0.55rem; }
+            .tab-item i { font-size: 1rem; }
+            .cards-grid { grid-template-columns: 1fr; }
+        }
+        @media (min-width: 768px) { .cards-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (min-width: 1024px) { .cards-grid { grid-template-columns: repeat(3, 1fr); } }
     </style>
 </head>
 <body>
 
-<!-- AUTH -->
-<div class="auth-container" id="authContainer">
-    <div class="auth-logo" style="text-align:center;margin-bottom:40px;"><h1 style="background:linear-gradient(135deg,#ff2d55,#5856d6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">HOLDEST ⭐</h1><p>Rejoignez la communauté</p></div>
-    <div class="auth-form" id="loginForm">
-        <div class="auth-title">Connexion</div>
-        <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-input" id="loginEmail" placeholder="vous@exemple.com"></div>
-        <div class="form-group"><label class="form-label">Mot de passe</label><input type="password" class="form-input" id="loginPassword" placeholder="Votre mot de passe"></div>
-        <button class="auth-btn" id="loginBtn">Se connecter</button><div id="loginMsg" class="text-center mt-10"></div>
-        <div class="auth-switch">Pas de compte ? <a id="switchToRegister">S'inscrire</a></div>
+<div class="app-header">
+    <div class="header-left">
+        <i class="fas fa-building logo-icon"></i>
+        <div class="header-text">
+            <h1>HOLDEST Conciergerie × Junga Tour</h1>
+            <p>Guide Randria • Madagascar authentique</p>
+        </div>
     </div>
-    <div class="auth-form hidden" id="registerForm">
-        <div class="auth-title">Inscription</div>
-        <div class="form-group"><label class="form-label">Pseudo</label><input type="text" class="form-input" id="registerUsername" placeholder="@username"></div>
-        <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-input" id="registerEmail" placeholder="vous@exemple.com"></div>
-        <div class="form-group"><label class="form-label">Mot de passe (6+)</label><input type="password" class="form-input" id="registerPassword"></div>
-        <button class="auth-btn" id="registerBtn">Créer mon compte</button><div id="registerMsg" class="text-center mt-10"></div>
-        <div class="auth-switch">Déjà un compte ? <a id="switchToLogin">Se connecter</a></div>
+    <div class="header-buttons" id="headerButtons">
+        <button class="btn-sm btn-outline" onclick="openModal('loginModal')">Se connecter</button>
+        <button class="btn-sm btn-filled" onclick="openModal('registerModal')">S'inscrire</button>
+        <button class="btn-sm btn-dark" onclick="openRootsInterface()"><i class="fas fa-fire"></i> Budget Serré</button>
     </div>
 </div>
 
-<!-- CAMERA -->
-<div class="camera-container hidden" id="cameraContainer">
-    <div class="camera-header"><button class="camera-option" id="closeCamera"><i class="fas fa-times"></i></button><div>HOLDEST Camera</div><button class="camera-option" id="toggleFlash"><i class="fas fa-bolt"></i></button></div>
-    <div class="camera-preview"><video class="camera-feed" id="cameraFeed" autoplay playsinline></video><button class="switch-camera" id="switchCamera"><i class="fas fa-camera-rotate"></i></button></div>
-    <div class="camera-controls"><button class="capture-btn" id="captureBtn"></button><div class="camera-options"><button class="camera-option" id="galleryBtn"><i class="fas fa-image"></i></button><button class="camera-option" id="videoModeBtn"><i class="fas fa-video"></i></button></div></div>
-    <input type="file" id="galleryInput" accept="image/*,video/*" style="display:none;">
+<div class="concept-badge">
+    <i class="fas fa-peace"></i>
+    <div>
+        <strong>🌟 HOLDEST Conciergerie × Junga Tour — Plus qu'un guide : un ami sur place</strong><br>
+        <span style="font-size:0.8rem;">Randria, guide rasta cool et pro, 15 ans d'expérience. Du roots authentique au luxe privé, tous les circuits Junga Tour.</span>
+    </div>
 </div>
 
-<!-- MAIN CONTENT -->
-<div class="main-content hidden" id="mainContent">
-    <div class="header hidden" id="mainHeader">
-        <div class="logo">HOLDEST ⭐</div>
-        <div class="header-actions">
-            <button class="header-btn" id="headerCreatePost"><i class="fas fa-plus-circle"></i></button>
-            <div class="header-profile" id="headerProfile"><div class="header-avatar" id="headerAvatar">?</div></div>
+<div class="search-wrapper">
+    <i class="fas fa-search" style="color:#a0b0a6;"></i>
+    <input type="text" id="searchInput" placeholder="Rechercher une destination...">
+    <button id="searchBtn">Explorer</button>
+</div>
+
+<div class="exchange-rate-info" id="exchangeRateInfo">
+    <i class="fas fa-chart-line"></i> Taux de change actualisé : <span id="ariaryRate">chargement...</span>
+</div>
+
+<!-- ÉCRAN ACCUEIL -->
+<div id="homeScreen" class="screen active">
+    <div class="origin-info-box" id="originInfoBox" style="display:none;">
+        <h4><i class="fas fa-globe-europe"></i> <span id="originTitle">Vous voyagez depuis la Métropole</span></h4>
+        <p id="originDetails">Randria s'adapte à votre provenance. Vols, décalage horaire, change de devises : tout est prévu.</p>
+    </div>
+    
+    <div id="monVoyageSection" style="display:none;">
+        <div class="mon-voyage-card" id="monVoyageCard"></div>
+    </div>
+    
+    <div style="background:white; border-radius:28px; padding:clamp(16px,3vw,20px); margin-bottom:24px; display:flex; gap:clamp(10px,2vw,16px); align-items:center; flex-wrap:wrap;" class="card">
+        <div style="width:clamp(60px,15vw,80px); height:clamp(60px,15vw,80px); border-radius:50%; background:url('https://mcusercontent.com/40a9f1a77d46874eba2309d88/images/bc4a9ad4-e8d7-466e-fa9e-6321e2e27aa5.jpg') center/cover; flex-shrink:0;"></div>
+        <div style="flex:1; min-width:150px;">
+            <h3 style="font-family:'Playfair Display',serif;">Randria Bernary</h3>
+            <p style="font-size:clamp(0.7rem,1.3vw,0.8rem);">🌿 Guide rasta, 15 ans d'expérience<br>🔥 S'adapte à ton style : roots ou luxe<br><span class="tripadvisor-badge" onclick="window.open('https://www.tripadvisor.com/Attraction_Review-g293745-d12345678-Reviews-Junga_Tour-Madagascar.html', '_blank')"><i class="fab fa-tripadvisor"></i> 5☆ TripAdvisor - Junga Tour</span></p>
         </div>
     </div>
-
-    <!-- PAGE ACCUEIL -->
-    <div class="page active" id="homePage">
-        <div id="feed" class="video-feed"><div class="loading-spinner"><i class="fas fa-spinner"></i> Chargement...</div></div>
+    
+    <!-- GARANTIE D'ANNULATION (placée ici comme demandé) -->
+    <div class="garantie-badge">
+        <i class="fas fa-handshake"></i>
+        <strong>🤝 Garantie de confiance HOLDEST</strong><br>
+        <small>
+            🌧️ <strong>Intempéries / orage :</strong> activité reportée ou remboursement partiel<br>
+            ❌ <strong>Annulation J-7 :</strong> remboursement 100% de l'acompte (hors 30€ dossier)<br>
+            ❌ <strong>Annulation J-2 :</strong> remboursement 50% de l'acompte<br>
+            ✅ <strong>Annulation par HOLDEST :</strong> remboursement INTÉGRAL
+        </small>
     </div>
-
-    <!-- PAGE DÉCOUVERTE -->
-    <div class="page" id="discoverPage">
-        <div class="search-bar"><i class="fas fa-search"></i><input type="text" class="search-input" id="discoverSearch" placeholder="Rechercher des utilisateurs..."></div>
-        <div class="categories-grid">
-            <div class="category-card" data-category="general"><div class="category-icon">🌟</div><div class="category-title">Général</div></div>
-            <div class="category-card" data-category="fun"><div class="category-icon">😂</div><div class="category-title">Fun</div></div>
-            <div class="category-card" data-category="galere"><div class="category-icon">😤</div><div class="category-title">Galères</div></div>
-            <div class="category-card" data-category="conseil"><div class="category-icon">💡</div><div class="category-title">Conseils</div></div>
+    
+    <div class="info-rapide">
+        <div class="info-rapide-item" onclick="showSecuriteModal()">
+            <i class="fas fa-first-aid" style="color:#2980b9;"></i>
+            🛡️ Guides formés<br><small>Secourisme & santé</small>
         </div>
-        <div class="section-title">🔥 Tendance</div>
-        <div id="discoverFeed" class="video-feed"></div>
-        <div class="section-title">👥 Utilisateurs</div>
-        <div id="usersList"></div>
+        <div class="info-rapide-item" onclick="showRetardModal()">
+            <i class="fas fa-clock" style="color:#f0c040;"></i>
+            ⏰ Vol retardé ?<br><small>Attente GRATUITE</small>
+        </div>
     </div>
+    
+    <h2 class="section-title">✨ Destinations d'exception</h2>
+    <div class="cards-grid" id="destinationsGrid"></div>
+    <h2 class="section-title" style="margin-top:32px;">🛡️ Nos formules</h2>
+    <p class="section-subtitle">Cliquez sur une formule pour voir le détail complet</p>
+    <div class="cards-grid" id="servicesGrid"></div>
+    <h2 class="section-title" style="margin-top:32px;">🎉 Sorties nocturnes par ville</h2>
+    <p class="section-subtitle">Découvrez la vie nocturne de chaque destination (accès libre)</p>
+    <div class="cards-grid" id="sortiesAccueilGrid"></div>
+    <h2 class="section-title" style="margin-top:32px;">🤝 Partenaires locaux de confiance</h2>
+    <div class="partners-grid" id="partnersGrid"></div>
+    
+    <!-- ESPACE MANAGER - Caché par défaut (visible seulement pour l'admin) -->
+    <div class="manager-badge" id="managerSection">
+        <h4><i class="fas fa-user-tie"></i> Espace Manager - HOLDEST Conciergerie</h4>
+        <p style="font-size:0.9rem; margin-bottom:8px;">Commission estimée : <strong id="managerCommission">0€</strong> (10% du total)</p>
+        <div class="code-box" id="managerCode">HOLDEST_MANAGER_2025</div>
+        <div class="commission-split">
+            <span>🛡️ Guide Randria 60%</span>
+            <span>🏢 Management HOLDEST 40%</span>
+        </div>
+        <button class="btn-sm" style="background:#ff8c42; color:#1a1a1a; margin-top:12px; border:none; cursor:pointer;" onclick="copyManagerCode()">📋 Copier le code</button>
+        <p style="font-size:0.7rem; color:#aaa; margin-top:8px;">Code partenaire : HOLDEST_MANAGER_2025</p>
+    </div>
+    
+    <h2 class="section-title" style="margin-top:32px;">💬 Témoignages (avis certifiés)</h2>
+    <div id="testimonialsContainer"></div>
+</div>
 
-    <!-- PAGE PROFIL -->
-    <div class="page" id="profilePage">
+<!-- BUDGET -->
+<div id="budgetScreen" class="screen">
+    <h2 class="section-title">💰 Calculez votre budget détaillé</h2>
+    <p class="section-subtitle">Simulez votre voyage avec précision (Confort, Premium, Luxe)</p>
+    
+    <div class="people-selector">
+        <button data-people="1" class="active">👤 Seul(e)</button>
+        <button data-people="2">👫 En couple</button>
+        <button data-people="4">👥 Groupe (4 pers.)</button>
+        <button data-people="6">🧑‍🤝‍🧑 Groupe (6+ pers.)</button>
+    </div>
+    
+    <div class="location-selector" id="locationSelector">
+        <button data-loc="tana" class="active">📍 Tana</button>
+        <button data-loc="majunga">📍 Majunga</button>
+        <button data-loc="nosybe">📍 Nosy Be</button>
+        <button data-loc="diego">📍 Diego</button>
+        <button data-loc="tamatave">📍 Tamatave</button>
+    </div>
+    <div class="budget-selector" id="durationSelector">
+        <button data-days="2">2j</button><button data-days="4">4j</button><button data-days="7" class="active">1 sem.</button><button data-days="10">10j</button><button data-days="14">2 sem.</button><button data-days="21">3 sem.</button><button data-days="30">1 mois</button>
+    </div>
+    <div class="formula-selector" id="formulaSelector">
+        <button data-formula="confort" class="active">⭐ Confort</button>
+        <button data-formula="premium">🌟 Premium</button>
+        <button data-formula="luxe">👑 Luxe</button>
+    </div>
+    <div class="budget-table" id="budgetTable"></div>
+    <div class="avantages-box" id="avantagesBox"></div>
+    
+    <h3 class="section-title" style="font-size:1.2rem; margin-top:16px;">🎉 Ajouter des extras</h3>
+    <div class="extras-grid" id="extrasGrid"></div>
+    
+    <div class="roots-section" style="background:white; color:#1a2b22; border:2px solid var(--green); margin-bottom:16px;">
+        <h4 style="color:var(--green-dark); margin-bottom:12px;">🔒 Système de paiement sécurisé</h4>
+        <div class="acompte-options" id="acompteOptions" style="grid-template-columns:1fr 1fr;">
+            <div class="acompte-option selected" data-acompte="aeroport" style="color:#1a2b22; background:#f0f7f2; border-color:var(--green);">
+                <i class="fas fa-plane-arrival" style="color:var(--green);"></i> Prise en charge aéroport
+            </div>
+            <div class="acompte-option" data-acompte="surplace" style="color:#1a2b22; background:white; border-color:#ddd;">
+                <i class="fas fa-handshake" style="color:var(--primary);"></i> Rendez-vous sur place
+            </div>
+        </div>
+        <p style="font-size:0.8rem; color:var(--text-soft); margin-top:10px;" id="acompteDescription">
+            <strong>Aéroport :</strong> Randria vous accueille avec un panneau à votre nom. Frais dossier 30€ + 30% du solde. <span style="color:#27ae60;">🕒 Retard vol = attente GRATUITE.</span>
+        </p>
+    </div>
+    <button class="reserve-btn" id="devisBtn" onclick="openDevisModal()">📋 Recevoir mon devis personnalisé</button>
+    <p style="text-align:center; margin-top:12px; font-size:0.8rem; color:var(--text-soft);" id="reductionMsg"></p>
+</div>
+
+<!-- BBQ -->
+<div id="bbqScreen" class="screen">
+    <h2 class="section-title">🔥 Barbecue privé Roots & Vibes</h2>
+    <div style="background:white; border-radius:28px; padding:clamp(16px,3vw,24px); margin-bottom:24px;" class="card">
+        <ul style="margin-left:20px; line-height:2;"><li>🥩 Zébu mariné aux épices malgaches</li><li>🍗 Poulet grillé au feu de bois</li><li>🐟 Poisson frais pêché du jour</li><li>🍚 Riz et accompagnements locaux</li></ul>
+        <p style="font-weight:700;">💰 25 000 Ar/pers (~5€)</p>
+        <button class="reserve-btn" data-service="Barbecue">Réserver</button>
+    </div>
+    <h2 class="section-title">🎉 Sorties nocturnes détaillées</h2>
+    <p class="section-subtitle">Tous les spots recommandés par Randria (Junga Tour)</p>
+    <div id="sortiesDetailContainer"></div>
+</div>
+
+<!-- TRANSPORT -->
+<div id="transportScreen" class="screen">
+    <h2 class="section-title">🚖 Transport & Transferts</h2>
+    <p class="section-subtitle" id="transportSubtitle">Choisissez votre destination</p>
+    <div class="location-selector" id="transportLocationSelector">
+        <button data-loc="tana" class="active">📍 Tana</button>
+        <button data-loc="majunga">📍 Majunga</button>
+        <button data-loc="nosybe">📍 Nosy Be</button>
+        <button data-loc="diego">📍 Diego</button>
+        <button data-loc="tamatave">📍 Tamatave</button>
+    </div>
+    <div class="cards-grid" id="transportDetailsGrid"></div>
+    <div class="origin-info-box" style="margin-top:16px;">
+        <h4><i class="fas fa-plane"></i> Depuis l'étranger ?</h4>
+        <p>Randria peut venir vous chercher à l'aéroport d'Ivato (Tana) ou à l'aéroport de Fascene (Nosy Be).</p>
+        <p style="margin-top:8px;"><strong>Vols directs depuis Paris :</strong> Air France, Corsair (10-11h de vol).</p>
+        <p style="margin-top:4px;"><strong>Visa :</strong> 35€ à l'arrivée pour 30 jours.</p>
+        <p style="margin-top:4px;"><strong>Décalage horaire :</strong> +2h en hiver, +1h en été (France).</p>
+        <p style="margin-top:4px;"><strong>Change :</strong> 1€ ≈ <span id="dynamicRate">5000</span> Ar (mise à jour en temps réel)</p>
+    </div>
+</div>
+
+<!-- EXPLORER -->
+<div id="exploreScreen" class="screen">
+    <h2 class="section-title">🗺️ Carte</h2>
+    <div class="map-container"><div id="madagascarMap"></div></div>
+    
+    <h2 class="section-title">🇲🇬 Culture & Traditions malgaches</h2>
+    <p class="section-subtitle">Plongez au cœur de l'identité malgache avec Randria</p>
+    <div class="culture-section">
+        <div class="culture-grid">
+            <div class="culture-card">
+                <h5><i class="fas fa-drumstick-bite"></i> Le "Mora Mora"</h5>
+                <p>L'art de prendre son temps, de ne pas stresser. À Madagascar, tout se fait "mora mora" (doucement). Randria vous apprendra à apprécier ce rythme de vie.</p>
+            </div>
+            <div class="culture-card">
+                <h5><i class="fas fa-hands-helping"></i> Le Fihavanana</h5>
+                <p>La solidarité et l'entraide entre proches. Une valeur essentielle qui régit les relations sociales malgaches.</p>
+            </div>
+            <div class="culture-card">
+                <h5><i class="fas fa-tree"></i> Le Famadihana</h5>
+                <p>"Le retournement des morts" - Cérémonie funéraire unique où les familles honorent leurs ancêtres tous les 5-7 ans.</p>
+            </div>
+            <div class="culture-card">
+                <h5><i class="fas fa-hippo"></i> Le Zébu, animal sacré</h5>
+                <p>Symbole de richesse et de pouvoir. Offrir un zébu lors d'un mariage est le plus beau des cadeaux.</p>
+            </div>
+            <div class="culture-card">
+                <h5><i class="fas fa-hands"></i> Savoir-vivre</h5>
+                <p>On ne touche pas la tête d'un aîné. On dit toujours "Azafady" (pardon/merci/s'il vous plaît). On se serre la main en entrant dans une pièce.</p>
+            </div>
+            <div class="culture-card">
+                <h5><i class="fas fa-language"></i> Expressions essentielles</h5>
+                <p>💬 Salama = Bonjour<br>💬 Misaotra = Merci<br>💬 Azafady = Pardon/SVP<br>💬 Tsara be = Très bien !<br>💬 Mankasitraka = Merci beaucoup</p>
+            </div>
+        </div>
+    </div>
+    
+    <h2 class="section-title">❓ FAQ</h2>
+    <div class="faq-grid" id="faqGrid"></div>
+    <h2 class="section-title">🎥 Vidéos</h2>
+    <div class="video-container"><iframe src="https://www.youtube.com/embed/YmZSZd6k6Qk" frameborder="0" allowfullscreen></iframe></div>
+    <div class="video-container"><iframe src="https://www.youtube.com/embed/ihFWsRzQX2Q" frameborder="0" allowfullscreen></iframe></div>
+</div>
+
+<!-- MODALES -->
+<div class="modal-overlay" id="devisModal">
+    <div class="modal-box">
+        <h3>📋 Demande de devis personnalisé</h3>
+        <p style="font-size:0.85rem; color:var(--text-soft); margin-bottom:16px;">Remplissez ce formulaire et Randria vous répondra sous 24h.</p>
+        <form id="devisForm">
+            <input type="text" id="devisNom" placeholder="Nom complet *" required>
+            <input type="email" id="devisEmail" placeholder="Email *" required>
+            <input type="tel" id="devisTel" placeholder="Téléphone (optionnel)">
+            <select id="devisDestination" required>
+                <option value="">Destination souhaitée *</option>
+                <option value="Tana">Tana & Hautes Terres</option>
+                <option value="Nosy Be">Nosy Be & îles</option>
+                <option value="Majunga">Majunga & Baobabs</option>
+                <option value="Diego">Diego & Mer Émeraude</option>
+                <option value="Tamatave">Tamatave & Pangalanes</option>
+            </select>
+            <select id="devisDuree" required>
+                <option value="">Durée du séjour *</option>
+                <option value="2">2 jours</option>
+                <option value="4">4 jours</option>
+                <option value="7">1 semaine</option>
+                <option value="10">10 jours</option>
+                <option value="14">2 semaines</option>
+                <option value="21">3 semaines</option>
+                <option value="30">1 mois</option>
+            </select>
+            <select id="devisFormule" required>
+                <option value="">Formule souhaitée *</option>
+                <option value="confort">⭐ Confort</option>
+                <option value="premium">🌟 Premium</option>
+                <option value="luxe">👑 Luxe</option>
+                <option value="roots">🌿 Roots (Budget Serré)</option>
+            </select>
+            <textarea id="devisMessage" placeholder="Message ou demande spéciale (optionnel)"></textarea>
+            <input type="hidden" id="devisBudgetTotal" value="">
+            <button type="submit" class="btn-full" style="background:var(--green); color:white;">📩 Envoyer ma demande</button>
+            <button type="button" class="btn-full" style="background:#ddd;" onclick="closeModal('devisModal')">Annuler</button>
+        </form>
+    </div>
+</div>
+
+<div class="modal-overlay" id="rootsDevisModal">
+    <div class="modal-box">
+        <h3>🌿 Demande de devis - Budget Serré</h3>
+        <p style="font-size:0.85rem; color:var(--text-soft); margin-bottom:16px;">Remplissez ce formulaire pour un voyage roots authentique avec Randria.</p>
+        <form id="rootsDevisForm">
+            <input type="text" id="rootsNom" placeholder="Nom complet *" required>
+            <input type="email" id="rootsEmail" placeholder="Email *" required>
+            <input type="tel" id="rootsTel" placeholder="Téléphone (optionnel)">
+            <select id="rootsDestination" required>
+                <option value="">Destination souhaitée *</option>
+                <option value="Tana">Tana & Hautes Terres</option>
+                <option value="Nosy Be">Nosy Be & îles</option>
+                <option value="Majunga">Majunga & Baobabs</option>
+                <option value="Diego">Diego & Mer Émeraude</option>
+                <option value="Tamatave">Tamatave & Pangalanes</option>
+            </select>
+            <select id="rootsDuree" required>
+                <option value="">Durée du séjour *</option>
+                <option value="4">4 jours</option>
+                <option value="7">1 semaine</option>
+                <option value="10">10 jours</option>
+                <option value="14">2 semaines</option>
+                <option value="21">3 semaines</option>
+            </select>
+            <select id="rootsType" required>
+                <option value="">Type de logement souhaité *</option>
+                <option value="chez_habitant">🏠 Chez l'habitant</option>
+                <option value="auberge">🛏️ Auberge collective</option>
+                <option value="mixte">🔄 Mixte (selon disponibilité)</option>
+            </select>
+            <textarea id="rootsMessage" placeholder="Vos attentes, questions, ou demande spéciale..."></textarea>
+            <button type="submit" class="btn-full" style="background:var(--green); color:white;">🌿 Demander mon devis Roots</button>
+            <button type="button" class="btn-full" style="background:#ddd;" onclick="closeModal('rootsDevisModal')">Annuler</button>
+        </form>
+    </div>
+</div>
+
+<div class="modal-overlay" id="registerModal">
+    <div class="modal-box">
+        <h3>📝 Créer un compte HOLDEST</h3>
+        <p style="font-size:0.85rem; color:var(--text-soft); margin-bottom:16px;">Inscrivez-vous pour obtenir <strong>5% de réduction</strong>.</p>
+        <input type="text" placeholder="Nom complet" id="regName">
+        <input type="email" placeholder="Email" id="regEmail">
+        <input type="tel" placeholder="Téléphone" id="regPhone">
+        <select id="regOrigin">
+            <option value="">🌍 D'où venez-vous ?</option>
+            <option value="france">France (Métropole)</option>
+            <option value="europe">Europe (hors France)</option>
+            <option value="afrique">Afrique</option>
+            <option value="autre">Autre</option>
+        </select>
+        <select id="registerCity">
+            <option value="">📍 Où voulez-vous aller ?</option>
+            <option value="tana">Antananarivo (Tana)</option>
+            <option value="majunga">Majunga</option>
+            <option value="nosybe">Nosy Be</option>
+            <option value="diego">Diego Suarez</option>
+            <option value="tamatave">Tamatave (Toamasina)</option>
+        </select>
+        <select id="registerFormula">
+            <option value="">⭐ Choisissez votre formule</option>
+            <option value="confort">Confort</option>
+            <option value="premium">Premium</option>
+            <option value="luxe">Luxe</option>
+        </select>
+        <select id="registerDays">
+            <option value="">📅 Durée du séjour</option>
+            <option value="7">1 semaine</option>
+            <option value="10">10 jours</option>
+            <option value="14">2 semaines</option>
+            <option value="21">3 semaines</option>
+            <option value="30">1 mois</option>
+        </select>
+        <input type="password" placeholder="Mot de passe" id="regPassword">
+        <button class="btn-full" style="background:var(--green); color:white;" onclick="register()">S'inscrire</button>
+        <button class="btn-full" style="background:#ddd;" onclick="closeModal('registerModal')">Annuler</button>
+    </div>
+</div>
+
+<div class="modal-overlay" id="loginModal">
+    <div class="modal-box">
+        <h3>🔐 Se connecter à HOLDEST</h3>
+        <input type="email" placeholder="Email" id="loginEmail">
+        <input type="password" placeholder="Mot de passe" id="loginPassword">
+        <button class="btn-full" style="background:var(--green); color:white;" onclick="login()">Se connecter</button>
+        <button class="btn-full" style="background:#ddd;" onclick="closeModal('loginModal')">Annuler</button>
+    </div>
+</div>
+
+<!-- MODALE PROFIL UTILISATEUR (accessible en cliquant sur le nom) -->
+<div class="modal-overlay" id="profileModal">
+    <div class="modal-box">
+        <h3><i class="fas fa-user-circle"></i> Mon profil HOLDEST</h3>
         <div id="profileContent"></div>
-        <div class="section-title">📝 Mes Posts</div>
-        <div id="userPostsList"></div>
+        <button class="btn-full" style="background:#ddd; margin-top:16px;" onclick="closeModal('profileModal')">Fermer</button>
     </div>
+</div>
 
-    <!-- PAGE YOUTUBE -->
-    <div class="page" id="youtubePage">
-        <div class="section-title" style="color:#ff0000;"><i class="fab fa-youtube"></i> YouTube</div>
-        <div class="search-bar"><i class="fas fa-search"></i><input type="text" class="search-input" id="youtubeSearch" placeholder="Rechercher des vidéos..."></div>
-        <div id="youtubeContent"><div class="loading-spinner"><i class="fas fa-spinner"></i> Chargement...</div></div>
+<div class="modal-overlay" id="formuleDetailModal">
+    <div class="modal-box" id="formuleDetailContent"></div>
+</div>
+
+<div class="modal-overlay" id="securiteModal">
+    <div class="modal-box" id="securiteContent"></div>
+</div>
+
+<div class="modal-overlay" id="retardModal">
+    <div class="modal-box" id="retardContent"></div>
+</div>
+
+<div class="modal-overlay" id="sortieDetailModal">
+    <div class="modal-box" id="sortieDetailContent"></div>
+</div>
+
+<!-- TAB BAR -->
+<div class="tab-bar">
+    <button class="tab-item active" data-screen="home"><i class="fas fa-compass"></i><span>Accueil</span></button>
+    <button class="tab-item" data-screen="budget"><i class="fas fa-coins"></i><span>Budget</span></button>
+    <button class="tab-item" data-screen="bbq"><i class="fas fa-fire"></i><span>BBQ</span></button>
+    <button class="tab-item" data-screen="transport"><i class="fas fa-car"></i><span>Transport</span></button>
+    <button class="tab-item" data-screen="explore"><i class="fas fa-map"></i><span>Explorer</span></button>
+</div>
+
+<a href="https://wa.me/261321122334" class="whatsapp-float" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp Randria</a>
+
+<!-- INTERFACE BUDGET SERRÉ -->
+<div class="roots-interface" id="rootsInterface">
+    <div class="roots-header">
+        <h2><i class="fas fa-fire"></i> BUDGET SERRÉ LOCAL - ROOTS</h2>
+        <button class="roots-close-btn" onclick="closeRootsInterface()">✕ Retour</button>
     </div>
-
-    <!-- PAGE JEUX -->
-    <div class="page" id="gamesPage">
-        <div class="section-title">🎮 Jeux</div>
-        <div class="games-grid" id="gamesList">
-            <div class="game-card" data-game="snake"><div class="game-icon">🐍</div><div class="game-title">Snake</div></div>
-            <div class="game-card" data-game="morpion"><div class="game-icon">⭕</div><div class="game-title">Morpion</div></div>
+    <div class="roots-content">
+        <div class="roots-section">
+            <div class="roots-image" style="background-image:url('https://mcusercontent.com/40a9f1a77d46874eba2309d88/images/2f1888e2-93a3-6de8-841d-24a7d125c1c8.jpg');"></div>
+            <h3>🌿 La formule Roots, c'est quoi ?</h3>
+            <p style="font-size:0.9rem; margin-bottom:12px;">Voyagez comme un vrai Malgache avec Randria. Découvrez la vraie vie locale : marchés, gargotes, paysages sans vous ruiner. Une expérience authentique et humaine.</p>
+            
+            <div class="people-selector" id="rootsPeopleSelector" style="margin-bottom: 20px;">
+                <button data-people-roots="1" class="active">👤 Seul(e)</button>
+                <button data-people-roots="2">👫 En couple</button>
+                <button data-people-roots="4">👥 Groupe (4 pers.)</button>
+                <button data-people-roots="6">🧑‍🤝‍🧑 Groupe (6+ pers.)</button>
+            </div>
+            
+            <div class="video-container" style="margin-bottom:12px;">
+                <iframe src="https://www.youtube.com/embed/3QzUz8v6lqo" frameborder="0" allowfullscreen></iframe>
+            </div>
+            <h4 style="color:#27ae60; margin-top:12px;">✅ Ce qui est inclus :</h4>
+            <ul>
+                <li>✅ Guide Randria francophone présent avec vous</li>
+                <li>✅ Transport local (taxi-brousse, bus, marche)</li>
+                <li>✅ Logement chez l'habitant ou petit hôtel propre</li>
+                <li>✅ Repas gargotes/marchés (cuisine fraîche)</li>
+                <li>✅ Visites sites gratuits et marchés locaux</li>
+                <li>✅ Conseils hygiène et sécurité tout le séjour</li>
+                <li>✅ Apprentissage des mots malgaches de base</li>
+            </ul>
+            <h4 style="color:#c0392b; margin-top:12px;">❌ Non inclus :</h4>
+            <ul>
+                <li>❌ Véhicule privé climatisé</li>
+                <li>❌ Hôtel climatisé</li>
+                <li>❌ Guide spécialisé (rando, plongée)</li>
+                <li>❌ Parcs nationaux payants</li>
+            </ul>
         </div>
-        <div id="gameEmbed" class="hidden"><div id="gameContent"></div><button class="auth-btn" id="closeGame" style="margin-top:10px;">Fermer</button></div>
+        
+        <div class="roots-section">
+            <div class="roots-image" style="background-image:url('https://mcusercontent.com/40a9f1a77d46874eba2309d88/images/16dfc1a3-111d-92a9-7d85-c6e3ebe9f7e4.jpg');"></div>
+            <h3>🍽️ Catégorie : Repas local</h3>
+            <ul>
+                <li>🥘 Déjeuner gargote (riz, laoka) <span class="roots-price-tag">3 500 Ar (0,70€)</span></li>
+                <li>🍗 Poulet grillé au marché <span class="roots-price-tag">10 000 Ar (2€)</span></li>
+                <li>🛒 Courses au marché avec Randria <span class="roots-price-tag">7 000 Ar/j (1,40€)</span></li>
+                <li>🍳 Cuisiner ensemble <span class="roots-price-tag">12 000 Ar (2,40€)</span></li>
+                <li>🥥 Fruit frais (mangue, litchi, banane) <span class="roots-price-tag">2 000 Ar (0,40€)</span></li>
+            </ul>
+            <div class="hygiene-box">
+                <i class="fas fa-hands-wash"></i>
+                <p style="font-size:0.85rem; margin-top:8px;"><strong>🧼 Hygiène garantie :</strong> Randria connaît les meilleures gargotes propres.</p>
+            </div>
+        </div>
+        
+        <div class="roots-section">
+            <div class="roots-image" style="background-image:url('https://mcusercontent.com/40a9f1a77d46874eba2309d88/images/cafac979-8e99-0a9f-07e6-be88471b2334.jpg');"></div>
+            <h3>🏠 Catégorie : Hébergement local</h3>
+            <ul>
+                <li>🛏️ Chambre chez l'habitant <span class="roots-price-tag">20 000 Ar (4€)</span></li>
+                <li>🏠 Appartement simple <span class="roots-price-tag">50 000 Ar (10€)</span></li>
+                <li>👥 Colocation <span class="roots-price-tag">15 000 Ar (3€)</span></li>
+                <li>🛋️ Canapé chez Randria <span class="roots-price-tag">Gratuit</span></li>
+                <li>🏕️ Bungalow basique <span class="roots-price-tag">35 000 Ar (7€)</span></li>
+            </ul>
+            <div class="hygiene-box">
+                <i class="fas fa-home"></i>
+                <p style="font-size:0.85rem; margin-top:8px;"><strong>🏠 Propreté vérifiée :</strong> Randria contrôle chaque logement.</p>
+            </div>
+        </div>
+        
+        <div class="roots-section">
+            <div class="roots-image" style="background-image:url('https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=600');"></div>
+            <h3>🚌 Catégorie : Transport local</h3>
+            <ul>
+                <li>🚐 Taxi-brousse Tana-Majunga <span class="roots-price-tag">40 000 Ar (8€)</span></li>
+                <li>🛵 Moto-taxi en ville <span class="roots-price-tag">3 000 Ar (0,60€)</span></li>
+                <li>🛴 Pousse-pousse <span class="roots-price-tag">1 500 Ar (0,30€)</span></li>
+                <li>🚌 Bus urbain <span class="roots-price-tag">1 000 Ar (0,20€)</span></li>
+                <li>⛵ Piège traditionnelle (Nosy Be) <span class="roots-price-tag">5 000 Ar (1€)</span></li>
+            </ul>
+        </div>
+        
+        <div class="roots-section">
+            <div class="roots-image" style="background-image:url('https://images.unsplash.com/photo-1518391846015-55a9cc003b25?w=600');"></div>
+            <h3>🗣️ Catégorie : Apprends le malgache</h3>
+            <div class="roots-grid">
+                <div class="roots-grid-item">👋 Salama<br><small>Bonjour</small></div>
+                <div class="roots-grid-item">🙏 Misaotra<br><small>Merci</small></div>
+                <div class="roots-grid-item">💰 Hoatrinona?<br><small>Combien?</small></div>
+                <div class="roots-grid-item">😋 Tsara be!<br><small>Très bon!</small></div>
+                <div class="roots-grid-item">🤝 Azafady<br><small>Pardon/SVP</small></div>
+                <div class="roots-grid-item">👋 Veloma<br><small>Au revoir</small></div>
+            </div>
+        </div>
+        
+        <div class="roots-section">
+            <div class="roots-image" style="background-image:url('https://mcusercontent.com/40a9f1a77d46874eba2309d88/images/3a23bfaa-20b4-df11-ff1b-54cce7ceec83.jpg');"></div>
+            <h3>🎁 Catégorie : Artisanat & Cadeaux locaux</h3>
+            <ul>
+                <li>🧣 Lamba (écharpe traditionnelle) <span class="roots-price-tag">6 000 Ar (1,20€)</span></li>
+                <li>🪵 Statuette bois sculpté <span class="roots-price-tag">10 000 Ar (2€)</span></li>
+                <li>🌿 Vanille bourbon <span class="roots-price-tag">4 000 Ar (0,80€)</span></li>
+                <li>🧺 Panier vannerie <span class="roots-price-tag">8 000 Ar (1,60€)</span></li>
+                <li>💍 Bijoux en graines <span class="roots-price-tag">3 000 Ar (0,60€)</span></li>
+            </ul>
+        </div>
+        
+        <div class="roots-section" id="rootsBudgetSection">
+            <h3>💰 Budget estimé (1 semaine Roots)</h3>
+            <div id="rootsBudgetDetails">
+                <ul>
+                    <li>Guide Randria <span class="roots-price-tag" id="rootsGuidePrice">28€ x 7 = 196€</span></li>
+                    <li>Transport local <span class="roots-price-tag" id="rootsTransportPrice">10€ x 7 = 70€</span></li>
+                    <li>Hébergement <span class="roots-price-tag" id="rootsHebergementPrice">15€ x 7 = 105€</span></li>
+                    <li>Repas <span class="roots-price-tag" id="rootsRepasPrice">8€ x 7 = 56€</span></li>
+                    <li>Activités <span class="roots-price-tag" id="rootsActivitesPrice">10€ x 7 = 70€</span></li>
+                </ul>
+                <p style="font-weight:700; text-align:center; margin-top:12px; font-size:1.1rem;">💰 TOTAL : <span id="rootsTotalEuro">497€</span> (<span id="rootsArTotal">2 485 000</span> Ar)</p>
+                <p style="font-size:0.8rem; text-align:center; margin-top:8px;">🔒 Acompte : Frais de dossier <strong>30€</strong> + Réservation <strong id="rootsAcompteReservation">124€</strong> = <strong id="rootsAcompteTotal">154€</strong></p>
+                <p style="font-size:0.8rem; text-align:center;">💵 Solde sur place : <strong id="rootsSolde">343€</strong></p>
+            </div>
+        </div>
+        
+        <div class="roots-section">
+            <h3>🧮 Simulez votre propre budget Roots</h3>
+            <div style="display: grid; gap: 10px;">
+                <label>Nombre de jours : <input type="number" id="rootsCustomDays" value="7" min="1" style="width: 80px; background: #333; color: white; border: 1px solid #ff8c42; padding: 5px; border-radius: 5px;"></label>
+                <label>Nombre de personnes : <input type="number" id="rootsCustomPeople" value="2" min="1" style="width: 80px; background: #333; color: white; border: 1px solid #ff8c42; padding: 5px; border-radius: 5px;"></label>
+                <label>Hébergement par jour (€) : <input type="number" id="rootsCustomHebergement" value="15" min="0" style="width: 80px; background: #333; color: white; border: 1px solid #ff8c42; padding: 5px; border-radius: 5px;"></label>
+                <label>Repas par jour (€) : <input type="number" id="rootsCustomRepas" value="8" min="0" style="width: 80px; background: #333; color: white; border: 1px solid #ff8c42; padding: 5px; border-radius: 5px;"></label>
+                <button class="roots-btn" onclick="calculateCustomRootsBudget()" style="margin-top: 10px;">Calculer mon budget</button>
+                <div id="rootsCustomResult" style="margin-top: 15px; text-align: center; font-weight: bold; background: #333; padding: 10px; border-radius: 10px;"></div>
+            </div>
+        </div>
+        
+        <button class="roots-btn" style="background:#25D366; color:white; margin-top:20px;" onclick="openRootsDevisModal()">
+            <i class="fab fa-whatsapp"></i> Demander un devis Roots
+        </button>
+        <button class="roots-btn" style="background:#ff8c42; color:#1a1a1a; margin-top:10px;" onclick="window.open('https://wa.me/261321122334?text=Salut%20Randria,%20je%20veux%20le%20budget%20serr%C3%A9%20!','_blank')">
+            <i class="fab fa-whatsapp"></i> Contacter Randria directement
+        </button>
     </div>
 </div>
-
-<!-- MODAL CREATE POST -->
-<div class="modal" id="createPostModal">
-    <div class="modal-header"><button class="close-btn" id="closePostModal"><i class="fas fa-times"></i></button><div>Créer un post</div><button class="auth-btn" id="publishPostBtn" style="width:auto;padding:8px 20px;">Publier</button></div>
-    <div class="modal-content">
-        <div class="form-group"><label class="form-label">Légende</label><textarea class="form-textarea" id="postCaption" placeholder="Écris une légende... #hashtag" rows="4"></textarea></div>
-        <div class="form-group"><label class="form-label">Média</label><input type="file" class="form-input" id="postMediaFile" accept="image/*,video/*"></div>
-        <div id="postMediaPreview"></div><div id="publishMsg" class="text-center mt-10"></div>
-    </div>
-</div>
-
-<!-- MODAL EDIT PROFILE -->
-<div class="modal" id="editProfileModal">
-    <div class="modal-header"><button class="close-btn" id="closeEditModal"><i class="fas fa-times"></i></button><div>Modifier profil</div><button class="auth-btn" id="saveProfileBtn" style="width:auto;padding:8px 20px;">Sauvegarder</button></div>
-    <div class="modal-content">
-        <div class="form-group"><label class="form-label">Bio</label><textarea class="form-textarea" id="editBio" rows="3"></textarea></div>
-    </div>
-</div>
-
-<!-- MODAL FOLLOWERS/FOLLOWING -->
-<div class="modal" id="followModal">
-    <div class="modal-header"><button class="close-btn" id="closeFollowModal"><i class="fas fa-times"></i></button><div id="followModalTitle">Abonnés</div></div>
-    <div class="modal-content" id="followList"></div>
-</div>
-
-<div id="toastContainer"></div>
-
-<nav class="navbar hidden" id="navbar">
-    <button class="nav-item" data-page="home"><i class="fas fa-home"></i><span>Accueil</span></button>
-    <button class="nav-item" data-page="discover"><i class="fas fa-search"></i><span>Découvrir</span></button>
-    <button class="nav-item camera" id="openCameraBtn"><i class="fas fa-camera"></i></button>
-    <button class="nav-item" data-page="youtube"><i class="fab fa-youtube" style="color:#ff0000;"></i><span>YouTube</span></button>
-    <button class="nav-item" data-page="games"><i class="fas fa-gamepad"></i><span>Jeux</span></button>
-</nav>
 
 <script>
-(function() {
-    const SUPABASE_URL = "https://wtsmekozfpeaixqobuik.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind0c21la296ZnBlYWl4cW9idWlrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4Mjk2MjcsImV4cCI6MjA5MzQwNTYyN30.AUm9renaVr3A8pzDNx5Dm_f4XJrhkIKlnUePm6Gl5S0";
+    // ==================== CONFIGURATION ====================
+    const FORMSPREE_ENDPOINT = "https://formspree.io/f/MON_ID";
+    const FORMSPREE_ROOTS_ENDPOINT = "https://formspree.io/f/MON_ID_ROOTS";
     
-    let supabase, currentUser = null, currentPage = 'home', viewedUserId = null;
-    let isRecording = false, mediaRecorder = null, recordedChunks = [], cameraStream = null, facingMode = 'environment';
-    let starCache = new Map();
+    let currentExchangeRate = 5000;
+    let isLoggedIn = false;
+    let isAdmin = false;  // Mode admin (pour voir l'espace manager)
+    let userName = "";
+    let userEmail = "";
+    let userCity = "";
+    let userOrigin = "";
+    let userFormula = "";
+    let userDays = 7;
+    let selectedAcompte = "aeroport";
+    let selectedExtras = [];
+    let currentPeopleCount = 1;
 
-    try {
-        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { persistSession: true, autoRefreshToken: true } });
-    } catch(e) { console.error(e); }
-
-    function showToast(msg) { const t = document.createElement("div"); t.className = "toast"; t.innerHTML = msg; document.getElementById("toastContainer").appendChild(t); setTimeout(() => t.remove(), 3000); }
-    function escapeHtml(s) { if(!s) return ""; return String(s).replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
-    function linkHashtags(t) { if(!t) return ''; return escapeHtml(t).replace(/(^|\s)(#[a-zA-Z0-9_]+)/g, '$1<span class="hashtag">$2</span>'); }
-    function formatTime(d) { if(!d) return ""; const dt = new Date(d), now = new Date(), diff = Math.floor((now-dt)/1000); if(diff<60) return "à l'instant"; if(diff<3600) return `il y a ${Math.floor(diff/60)} min`; return dt.toLocaleDateString(); }
-
-    async function getProfile(uid) { const id = uid || currentUser?.id; if(!id) return null; const { data } = await supabase.from("profiles").select("*").eq("id", id).single(); return data; }
-    async function getUserLikesReceived(uid) { const { data: posts } = await supabase.from("posts").select("id").eq("user_id", uid); if(!posts?.length) return 0; let total=0; for(let p of posts){ const { count } = await supabase.from("likes").select("*",{count:'exact',head:true}).eq("post_id",p.id); total += count||0; } return total; }
-    async function hasStar(uid) { if(starCache.has(uid)) return starCache.get(uid); const likes = await getUserLikesReceived(uid); const eligible = likes >= 30; starCache.set(uid, eligible); return eligible; }
-    async function isFollowing(followeeId) { if(!currentUser) return false; const { data } = await supabase.from("follows").select("*").eq("follower_id", currentUser.id).eq("followee_id", followeeId).maybeSingle(); return !!data; }
-    async function followUser(followeeId) { if(!currentUser) return; const existing = await isFollowing(followeeId); if(existing){ await supabase.from("follows").delete().eq("follower_id", currentUser.id).eq("followee_id", followeeId); showToast("👋 Désabonné"); } else { await supabase.from("follows").insert({ follower_id: currentUser.id, followee_id: followeeId }); showToast("✅ Abonné !"); } loadUserProfile(followeeId); if(currentPage === 'home') loadFeed(); }
-    async function getFollowCounts(uid) { const { count: followers } = await supabase.from("follows").select("*",{count:'exact',head:true}).eq("followee_id", uid); const { count: following } = await supabase.from("follows").select("*",{count:'exact',head:true}).eq("follower_id", uid); return { followers: followers||0, following: following||0 }; }
-
-    async function loadPostInteractions(pid) { try { const { count: likes } = await supabase.from("likes").select("*",{count:'exact',head:true}).eq("post_id", pid); let userLiked=false; if(currentUser){ const { data } = await supabase.from("likes").select("*").eq("post_id", pid).eq("user_id", currentUser.id).maybeSingle(); userLiked=!!data; } const { data: comments } = await supabase.from("comments").select("*").eq("post_id", pid).order("created_at"); return { likes: likes||0, userLiked, comments: comments||[] }; } catch(e){ return { likes:0, userLiked:false, comments:[] }; } }
-
-    async function toggleLike(pid, puid) { if(!currentUser){ showToast("🔒 Connecte-toi"); return; } const existing = await supabase.from("likes").select("id").eq("post_id", pid).eq("user_id", currentUser.id).maybeSingle(); if(existing?.id){ await supabase.from("likes").delete().eq("id", existing.id); starCache.delete(puid); } else { await supabase.from("likes").insert({ post_id: pid, user_id: currentUser.id }); starCache.delete(puid); } loadFeed(); if(currentPage === 'discover') loadDiscoverFeed(); }
-
-    async function addComment(pid, content) { if(!currentUser){ showToast("🔒 Connecte-toi"); return false; } if(!content.trim()) return false; const profile = await getProfile(); await supabase.from("comments").insert({ post_id: pid, user_id: currentUser.id, username: profile?.username || "Anonyme", content: content.trim() }); loadFeed(); if(currentPage === 'discover') loadDiscoverFeed(); return true; }
-
-    async function renderPosts(posts, container) {
-        if(!posts?.length){ container.innerHTML = '<div class="text-center p-20" style="color:var(--text-secondary);">📭 Aucun post</div>'; return; }
-        container.innerHTML = "";
-        for(let post of posts){
-            const { likes, userLiked, comments } = await loadPostInteractions(post.id);
-            const hasStarBadge = await hasStar(post.user_id);
-            const mediaHtml = post.media_url ? (post.media_type === "video" ? `<video class="post-media" src="${escapeHtml(post.media_url)}" controls preload="metadata" playsinline></video>` : `<img class="post-media" src="${escapeHtml(post.media_url)}" onerror="this.style.display='none'">`) : '<div style="padding:60px;text-align:center;">📷 Aucun média</div>';
-            const starHtml = hasStarBadge ? '<span class="star-certificate"><i class="fas fa-star"></i></span>' : '';
-            const canDel = currentUser && currentUser.id === post.user_id;
-            const delBtn = canDel ? `<button class="action-btn" onclick="window.deletePostById('${post.id}')" style="color:#ff453a;"><i class="fas fa-trash"></i> Suppr</button>` : '';
-            let commentsHtml = `<div class="comment-input-group"><input type="text" class="comment-input" id="ci-${post.id}" placeholder="Écris un commentaire..."><button class="action-btn" onclick="window.sendCommentById('${post.id}')" style="background:var(--primary-color);border-radius:50%;width:36px;height:36px;"><i class="fas fa-paper-plane"></i></button></div>`;
-            comments.forEach(c => { commentsHtml += `<div class="comment-item"><div class="comment-user" onclick="window.viewUserProfile('${c.user_id}')">${escapeHtml(c.username)}</div><div class="comment-content">${escapeHtml(c.content)}</div></div>`; });
-            if(comments.length === 0) commentsHtml += '<div class="text-center p-10" style="color:var(--text-secondary);">💬 Aucun commentaire</div>';
-            const postDiv = document.createElement("div"); postDiv.className = "post";
-            postDiv.innerHTML = `<div class="post-header"><div class="post-avatar" onclick="window.viewUserProfile('${post.user_id}')">${escapeHtml((post.user_username||"U")[0].toUpperCase())}</div><div class="post-info"><div class="post-author" onclick="window.viewUserProfile('${post.user_id}')">${escapeHtml(post.user_username||"Utilisateur")} ${starHtml}</div><div class="post-time">${formatTime(post.created_at)}</div></div></div>${post.caption ? `<div class="post-caption">${linkHashtags(post.caption)}</div>` : ""}${mediaHtml}<div class="post-actions"><button class="action-btn ${userLiked?'liked':''}" onclick="window.likePost('${post.id}','${post.user_id}')"><i class="fas fa-heart"></i> ${likes}</button><button class="action-btn" onclick="window.toggleCommentsSection('${post.id}')"><i class="fas fa-comment"></i> ${comments.length}</button>${delBtn}</div><div id="comments-${post.id}" class="comments-section">${commentsHtml}</div>`;
-            container.appendChild(postDiv);
-            const vid = postDiv.querySelector('video'); if(vid){ const obs = new IntersectionObserver(entries => { entries.forEach(e => { if(e.isIntersecting) vid.play().catch(()=>{}); else vid.pause(); }); }, { threshold:0.5 }); obs.observe(vid); }
+    // ==================== TAUX DE CHANGE ====================
+    async function fetchExchangeRate() {
+        try {
+            const response = await fetch('https://api.exchangerate-api.com/v4/latest/EUR');
+            const data = await response.json();
+            if (data && data.rates && data.rates.MGA) {
+                currentExchangeRate = Math.round(data.rates.MGA);
+                document.getElementById('ariaryRate').innerHTML = `1€ ≈ ${currentExchangeRate.toLocaleString()} Ar`;
+                document.getElementById('dynamicRate').innerHTML = currentExchangeRate.toLocaleString();
+                updateBudgetDisplay();
+                updateRootsBudgetDisplay();
+            }
+        } catch (error) {
+            document.getElementById('ariaryRate').innerHTML = `1€ ≈ 5000 Ar (taux par défaut)`;
         }
     }
 
-    async function loadFeed() { const feedDiv = document.getElementById("feed"); feedDiv.innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner"></i> Chargement...</div>'; const { data } = await supabase.from("posts").select("*").order("created_at", { ascending: false }); await renderPosts(data || [], feedDiv); }
-    async function loadDiscoverFeed() { const feedDiv = document.getElementById("discoverFeed"); feedDiv.innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner"></i> Chargement...</div>'; const { data } = await supabase.from("posts").select("*").order("created_at", { ascending: false }).limit(30); await renderPosts(data || [], feedDiv); }
-    async function loadUsers(search = '') { const container = document.getElementById("usersList"); let query = supabase.from("profiles").select("*"); if(search) query = query.ilike("username", `%${search}%`); const { data } = await query.limit(20); if(!data?.length){ container.innerHTML = '<div class="text-center p-20">Aucun utilisateur</div>'; return; } container.innerHTML = data.map(u => `<div class="user-item"><div class="user-info" onclick="window.viewUserProfile('${u.id}')"><div class="user-avatar">${(u.username||"U")[0].toUpperCase()}</div><div><strong>${escapeHtml(u.username)}</strong><br><small style="color:var(--text-secondary);">${escapeHtml(u.bio?.slice(0,50)||"")}</small></div></div><button class="action-btn" onclick="event.stopPropagation();window.followUserById('${u.id}')" style="background:var(--primary-color);padding:5px 15px;">${currentUser?.id === u.id ? 'Moi' : 'Suivre'}</button></div>`).join(''); }
+    // ==================== DONNÉES ====================
+    const programmesData = {
+        tana: [
+            { jour: 1, desc: "Arrivée à l'aéroport d'Ivato, accueil par Randria. Transfert à l'hôtel et premier contact avec Tana. Dîner dans un restaurant typique malgache." },
+            { jour: 2, desc: "Visite de la Haute Ville : Palais de la Reine (Rova), vue panoramique sur la ville. Après-midi au marché d'Analakely pour l'artisanat." },
+            { jour: 3, desc: "Excursion à la Croc Farm (crocodiles, lémuriens) et découverte de l'artisanat local. Déjeuner au bord du lac." },
+            { jour: 4, desc: "Journée détente ou option : visite du lac Anosy et du quartier branché d'Isoraka. Soirée au restaurant La Varangue." },
+            { jour: 5, desc: "Départ vers la campagne : visite du village d'Ambohimanga, site classé UNESCO. Retour à Tana en fin de journée." }
+        ],
+        nosybe: [
+            { jour: 1, desc: "Arrivée à l'aéroport de Fascene, transfert à l'hôtel. Dîner sur la plage de Madirokely, cocktail au coucher du soleil." },
+            { jour: 2, desc: "Excursion en bateau vers l'île de Nosy Komba : lémuriens en liberté, artisanat local. Snorkeling dans la baie." },
+            { jour: 3, desc: "Plongée ou snorkeling dans la réserve marine de Nosy Tanikely. Déjeuner pique-nique sur l'île." },
+            { jour: 4, desc: "Découverte de Lokobe, forêt tropicale et lémuriens noirs. Après-midi plage à Andilana." },
+            { jour: 5, desc: "Journée libre : farniente, massage sur la plage, ou excursion optionnelle à l'île aux parfums." }
+        ],
+        majunga: [
+            { jour: 1, desc: "Arrivée à Majunga, installation à l'hôtel. Promenade sur la plage du Grand Pavois, première baignade." },
+            { jour: 2, desc: "Visite des Baobabs amoureux et du rocher noir au coucher du soleil. Photos inoubliables." },
+            { jour: 3, desc: "Journée au marché Kijana, découverte de la vie locale. Déjeuner dans une gargote authentique." },
+            { jour: 4, desc: "Excursion à la plage d'Antsanitia, l'une des plus belles plages de la région. Baignade et détente." }
+        ],
+        diego: [
+            { jour: 1, desc: "Arrivée à Diego Suarez, transfert à l'hôtel. Vue imprenable sur la baie. Dîner au restaurant de fruits de mer." },
+            { jour: 2, desc: "Excursion à la Baie des Dunes et à la mer Émeraude. Baignade dans les eaux turquoise." },
+            { jour: 3, desc: "Randonnée à la Montagne des Français, panorama exceptionnel. Visite du village de Ramena." },
+            { jour: 4, desc: "Journée à la plage de Sakalava, spot de kitesurf réputé. Coucher de soleil sur l'océan Indien." }
+        ],
+        tamatave: [
+            { jour: 1, desc: "Arrivée à Tamatave, promenade le long du canal des Pangalanes. Installation à l'hôtel." },
+            { jour: 2, desc: "Visite du marché bazar et excursion à Foulpointe, plage de sable blanc à 60 km." },
+            { jour: 3, desc: "Journée libre : découverte du port, dégustation de fruits de mer frais, balade en pirogue." }
+        ]
+    };
 
-    async function loadUserProfile(userId) {
-        viewedUserId = userId; const profile = await getProfile(userId); if(!profile){ showToast("Utilisateur introuvable"); return; }
-        const { posts: postsCount } = await supabase.from("posts").select("id",{count:'exact'}).eq("user_id", userId);
-        const { followers, following } = await getFollowCounts(userId);
-        const hasStarBadge = await hasStar(userId);
-        const isOwn = currentUser?.id === userId;
-        const followingStatus = !isOwn && currentUser ? await isFollowing(userId) : false;
-        const starHtml = hasStarBadge ? '<span class="star-certificate"><i class="fas fa-star"></i></span>' : '';
-        document.getElementById("profileContent").innerHTML = `<div class="profile-header"><div class="profile-avatar-large">${(profile.username||"U")[0].toUpperCase()}</div><div class="profile-name">${escapeHtml(profile.username)} ${starHtml}</div><div class="profile-username">@${escapeHtml(profile.username)}</div><div class="profile-bio">${escapeHtml(profile.bio || "Aucune bio")}</div><div class="profile-stats"><div class="stat" onclick="window.showFollowList('${userId}','followers')"><div class="stat-number">${followers}</div><div class="stat-label">Abonnés</div></div><div class="stat" onclick="window.showFollowList('${userId}','following')"><div class="stat-number">${following}</div><div class="stat-label">Abonnements</div></div><div class="stat"><div class="stat-number">${postsCount||0}</div><div class="stat-label">Posts</div></div></div>${!isOwn && currentUser ? `<button class="follow-btn ${followingStatus ? 'following' : ''}" onclick="window.followUserById('${userId}')">${followingStatus ? 'Abonné' : 'S\'abonner'}</button>` : ''}${isOwn ? `<button class="edit-profile-btn" onclick="window.openEditProfile()">Modifier profil</button>` : ''}</div>`;
-        const { data: userPosts } = await supabase.from("posts").select("*").eq("user_id", userId).order("created_at", { ascending: false });
-        const postsContainer = document.getElementById("userPostsList"); postsContainer.innerHTML = '';
-        if(userPosts?.length){ for(let post of userPosts){ const { likes, comments } = await loadPostInteractions(post.id); const hasStarBadgePost = await hasStar(post.user_id); const starPostHtml = hasStarBadgePost ? '<span class="star-certificate"><i class="fas fa-star"></i></span>' : ''; const canDel = isOwn; const delBtn = canDel ? `<button class="action-btn" onclick="window.deletePostById('${post.id}')" style="color:#ff453a;"><i class="fas fa-trash"></i></button>` : ''; const mediaHtml = post.media_url ? (post.media_type === "video" ? `<video class="post-media" src="${escapeHtml(post.media_url)}" controls style="max-height:300px;"></video>` : `<img class="post-media" src="${escapeHtml(post.media_url)}" style="max-height:300px;">`) : ''; postsContainer.innerHTML += `<div class="post" style="margin-bottom:15px;"><div class="post-header"><div class="post-avatar">${(post.user_username||"U")[0].toUpperCase()}</div><div class="post-info"><div class="post-author">${escapeHtml(post.user_username)} ${starPostHtml}</div><div class="post-time">${formatTime(post.created_at)}</div></div></div>${post.caption ? `<div class="post-caption">${linkHashtags(post.caption)}</div>` : ''}${mediaHtml}<div class="post-actions"><button class="action-btn"><i class="fas fa-heart"></i> ${likes}</button><button class="action-btn"><i class="fas fa-comment"></i> ${comments.length}</button>${delBtn}</div></div>`; } } else { postsContainer.innerHTML = '<div class="text-center p-20" style="color:var(--text-secondary);">Aucun post</div>'; }
-        switchPage('profile');
+    const extrasData = {
+        tana: [
+            { name: "Soirée au Glacier", price: 15, desc: "Boîte de nuit chic, DJ sets" },
+            { name: "Dîner gastronomique", price: 25, desc: "Restaurant La Varangue" },
+            { name: "Concert live", price: 10, desc: "Musique malgache au Bus Magique" }
+        ],
+        nosybe: [
+            { name: "Soirée Madirokely", price: 10, desc: "Bars de plage, feu de camp" },
+            { name: "Plongée sous-marine", price: 40, desc: "Avec moniteur certifié" },
+            { name: "Massage plage", price: 15, desc: "Détente absolue" }
+        ],
+        majunga: [
+            { name: "Palm Beach Club", price: 10, desc: "Soirée dansante, cocktails" },
+            { name: "Sortie bateau sunset", price: 25, desc: "Promenade en mer" }
+        ],
+        diego: [
+            { name: "Plongée Baie des Dunes", price: 35, desc: "Eaux cristallines" },
+            { name: "Kitesurf Sakalava", price: 50, desc: "Spot réputé" }
+        ],
+        tamatave: [
+            { name: "Coconut Lounge", price: 10, desc: "Soirée branchée, tapas" },
+            { name: "Bateau canal", price: 8, desc: "Promenade pittoresque" }
+        ]
+    };
+
+    const sortiesDetailData = {
+        tana: {
+            title: "🌃 Antananarivo by night",
+            desc: "La capitale s'anime la nuit ! Bars branchés, musique live, restaurants chics et boîtes de nuit. Une vie nocturne surprenante et variée.",
+            lieux: [
+                { nom: "Le Glacier", type: "Boîte de nuit", desc: "La plus grande boîte de Tana, plusieurs salles, DJ sets. Tenue correcte exigée.", horaires: "22h-05h, ven-sam", prix: "Entrée 10 000 Ar (2€)", conseil: "Arrivez avant 23h les week-ends." },
+                { nom: "KUDeta", type: "Bar lounge", desc: "Terrasse panoramique, cocktails, tapas. Ambiance chic et détendue.", horaires: "18h-01h, tous les jours", prix: "Cocktail 12 000-18 000 Ar", conseil: "Idéal pour un date." },
+                { nom: "Bus Magique", type: "Bar concert", desc: "Musique live, scène ouverte, bières locales. Ambiance décontractée.", horaires: "19h-00h, mer-dim", prix: "Bière 3 000 Ar", conseil: "Venez avec l'esprit ouvert." },
+                { nom: "La Varangue", type: "Restaurant gastronomique", desc: "Cuisine fusion franco-malgache, cadre romantique et raffiné.", horaires: "19h-23h, tous les jours", prix: "Menu 45 000 Ar", conseil: "Réservation obligatoire." }
+            ]
+        },
+        nosybe: {
+            title: "🏝️ Nosy Be by night",
+            desc: "L'île aux parfums ne dort jamais ! Plages animées, bars les pieds dans le sable, soirées mémorables sous les étoiles.",
+            lieux: [
+                { nom: "Madirokely Beach", type: "Bars de plage", desc: "Plusieurs bars alignés sur la plage, musique, feu de camp. Cocktails dès 8 000 Ar.", horaires: "18h-02h, tous les jours", prix: "Cocktail 8 000-12 000 Ar", conseil: "Soirées du jeudi les plus animées." },
+                { nom: "Taxi Be", type: "Boîte de nuit", desc: "La boîte mythique de Nosy Be, piste de danse, DJ internationaux.", horaires: "23h-05h, jeu-sam", prix: "Entrée 15 000 Ar", conseil: "Peupler tôt." },
+                { nom: "L'Heure Bleue", type: "Bar lounge", desc: "Coucher de soleil, cocktails, ambiance tamisée et romantique.", horaires: "17h-00h, tous les jours", prix: "Rhums arrangés 10 000 Ar", conseil: "À ne pas manquer." }
+            ]
+        },
+        majunga: {
+            title: "🌴 Majunga by night",
+            desc: "Ambiance décontractée et authentique. Bars de plage, musique malgache, soirées douces au bord de l'eau.",
+            lieux: [
+                { nom: "Palm Beach Club", type: "Bar dansant", desc: "Sur la plage, cocktails, DJ. L'endroit incontournable de Majunga.", horaires: "20h-02h, ven-dim", prix: "Cocktail 10 000 Ar", conseil: "Venez tôt pour une table face mer." },
+                { nom: "Le Grand Pavois", type: "Restaurant-bar", desc: "Terrasse face à la mer, fruits de mer, coucher de soleil.", horaires: "18h-00h, tous les jours", prix: "Brochette poisson 12 000 Ar", conseil: "Crabe farci spécialité." },
+                { nom: "Sunset Club", type: "Bar ambiance", desc: "Musique live le week-end, rhums arrangés maison.", horaires: "19h-01h, mer-dim", prix: "Rhum 4 000 Ar", conseil: "Meilleur spot coucher soleil." }
+            ]
+        },
+        diego: {
+            title: "🏖️ Diego Suarez by night",
+            desc: "Le Grand Nord a aussi sa vie nocturne ! Bars de plage à Ramena, karaoké, ambiance roots et chaleureuse.",
+            lieux: [
+                { nom: "Bar de Ramena", type: "Bar de plage", desc: "Les pieds dans le sable, bières THB fraîches, fruits de mer.", horaires: "17h-00h, tous les jours", prix: "THB 3 000 Ar", conseil: "Samedi soir feu d'artifice." },
+                { nom: "Le Melville", type: "Bar karaoké", desc: "Karaoké, billard, ambiance conviviale et familiale.", horaires: "19h-01h, tous les jours", prix: "Entrée gratuite, conso 4 000 Ar", conseil: "Chantez du Céline Dion." }
+            ]
+        },
+        tamatave: {
+            title: "🌊 Tamatave by night",
+            desc: "L'ambiance portuaire de la côte Est. Bars simples, bonne humeur, rencontres locales inoubliables.",
+            lieux: [
+                { nom: "Coconut Lounge", type: "Bar branché", desc: "Le rendez-vous des expats et locaux. Tapas, cocktails.", horaires: "18h-00h, tous les jours", prix: "Tapas 6 000-10 000 Ar", conseil: "Happy hour 18h-20h." },
+                { nom: "Le Long du Canal", type: "Bars ambulants", desc: "Petits stands de brochettes et bières le long du canal. Ambiance populaire.", horaires: "18h-22h, tous les jours", prix: "Brochette 1 500 Ar", conseil: "Partagez avec les locaux." }
+            ]
+        }
+    };
+
+    const destinationsData = [
+        { name:"Antananarivo (Tana)", desc:"Capitale animée, marchés colorés, artisanat, palais de la Reine.", image:"https://mcusercontent.com/40a9f1a77d46874eba2309d88/images/2d033167-7190-e647-ae4c-ceca51b64248.jpg", badge:"Capitale", meteo:"🌦️ Année", duree:"2-4 jours", activites:"🏛️ Rova, Croc Farm, marché Digue", key:"tana" },
+        { name:"Nosy Be", desc:"Plages paradisiaques, snorkeling, lémuriens, épices.", image:"https://images.unsplash.com/photo-1590523741831-ab7e8b8f9c7f?w=600", badge:"Paradis", meteo:"☀️ Mai-Déc", duree:"4-7 jours", activites:"🏝️ Plongée, Nosy Komba", key:"nosybe" },
+        { name:"Majunga", desc:"Baobab amoureux, plages sauvages, rocher noir.", image:"https://mcusercontent.com/40a9f1a77d46874eba2309d88/images/bb0afd1f-83f7-e8a9-66ac-8785897379d2.jpg", badge:"Coup de cœur", meteo:"☀️ Avril-Nov", duree:"3-5 jours", activites:"💑 Baobabs, marché Kijana", key:"majunga" },
+        { name:"Diego Suarez", desc:"Baie des Dunes, mer émeraude, randonnées.", image:"https://mcusercontent.com/40a9f1a77d46874eba2309d88/images/411e8063-e643-9350-b5cf-231145f5f992.jpg", badge:"Grand Nord", meteo:"☀️ Mai-Nov", duree:"3-5 jours", activites:"🏖️ Mer Émeraude", key:"diego" },
+        { name:"Tamatave (Toamasina)", desc:"Port historique, canaux, plages.", image:"https://mcusercontent.com/40a9f1a77d46874eba2309d88/images/198b7106-ac1d-5ffe-9602-a0a47cae4950.jpg", badge:"Authentique", meteo:"🌦️ Année", duree:"2-3 jours", activites:"🛶 Canal, Foulpointe", key:"tamatave" }
+    ];
+
+    const formulesDetailData = {
+        confort: {
+            titre: "⭐ Formule Confort",
+            slogan: "Le meilleur rapport qualité-prix pour découvrir Madagascar",
+            description: "Voyagez confortablement avec un guide privé, un 4x4 climatisé et des hôtels soigneusement sélectionnés.",
+            details: [
+                { label: "Guide Randria", valeur: "28€/jour", desc: "Guide francophone disponible 24h/24" },
+                { label: "Transport", valeur: "22€/jour", desc: "4x4 Toyota Hilux climatisé, essence incluse" },
+                { label: "Hébergement", valeur: "25€/jour", desc: "Hôtels 2-3 étoiles propres et bien situés" },
+                { label: "Repas", valeur: "12€/jour", desc: "Restaurants typiques sélectionnés" },
+                { label: "Activités", valeur: "15€/jour", desc: "Visites guidées des sites incontournables" }
+            ],
+            total: "102€/jour",
+            image: "https://images.unsplash.com/photo-1544735716-392fe2489ffa?w=600"
+        },
+        premium: {
+            titre: "🌟 Formule Premium",
+            slogan: "L'excellence pour les voyageurs exigeants",
+            description: "Lodges de charme, gastronomie raffinée, expériences exclusives. Tout est pensé pour votre confort.",
+            details: [
+                { label: "Guide Randria", valeur: "38€/jour", desc: "Guide expert dédié, conseils personnalisés" },
+                { label: "Transport", valeur: "35€/jour", desc: "4x4 haut de gamme, sièges cuir, wifi à bord" },
+                { label: "Hébergement", valeur: "40€/jour", desc: "Lodges de charme avec piscine et spa" },
+                { label: "Repas", valeur: "20€/jour", desc: "Demi-pension en restaurants gastronomiques" },
+                { label: "Activités", valeur: "22€/jour", desc: "Expériences exclusives, guides spécialisés" }
+            ],
+            total: "155€/jour",
+            image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600"
+        },
+        luxe: {
+            titre: "👑 Formule Luxe",
+            slogan: "L'exception malgache, rien que pour vous",
+            description: "Resorts 5 étoiles, 4x4 de luxe avec chauffeur, chef privé. Le summum du voyage à Madagascar.",
+            details: [
+                { label: "Guide Randria", valeur: "55€/jour", desc: "Guide dédié exclusif, disponibilité absolue" },
+                { label: "Transport", valeur: "55€/jour", desc: "4x4 luxe avec chauffeur privé, boissons à bord" },
+                { label: "Hébergement", valeur: "65€/jour", desc: "Resorts 5*, villas privées, service irréprochable" },
+                { label: "Repas", valeur: "30€/jour", desc: "Pension complète, chef privé sur demande" },
+                { label: "Activités", valeur: "28€/jour", desc: "Sur mesure : hélicoptère, yacht, guide naturaliste" }
+            ],
+            total: "233€/jour",
+            image: "https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=600"
+        }
+    };
+
+    const servicesData = [
+        { name:"Formule Confort", desc:"Guide privé, 4x4 climatisé, hôtels 2-3*. Le meilleur rapport qualité-prix.", badge:"⭐ Confort", formula:"confort" },
+        { name:"Formule Premium", desc:"Lodges de charme, gastronomie, expériences exclusives.", badge:"🌟 Premium", formula:"premium" },
+        { name:"Formule Luxe", desc:"Resorts 5*, 4x4 luxe, chef privé. L'excellence absolue.", badge:"👑 Luxe", formula:"luxe" }
+    ];
+
+    const partnersData = [
+        { name:"Tsiky Trans", type:"Location 4x4", desc:"Flotte de Toyota Hilux récents, conducteurs expérimentés.", contact:"+261 34 12 345 67" },
+        { name:"Villa Baobab", type:"Hébergement", desc:"Lodge de charme à Majunga face à la mer.", contact:"Via Randria" },
+        { name:"MadaBike", type:"Moto/Quad", desc:"Location motos 125cc et quads.", contact:"Sur place" },
+        { name:"Local Food Tour", type:"Cuisine", desc:"Cours de cuisine malgache avec Mamy.", contact:"Sur réservation" }
+    ];
+
+    const transportDetailsData = {
+        tana: [{ title:"🛬 Ivato → Centre-ville", desc:"Transfert privé 4x4.", prix:"40 000 Ar (8€)", roots:"Taxi-brousse : 5 000 Ar" }],
+        majunga: [{ title:"🛬 Aéroport → Ville", desc:"Transfert privé.", prix:"25 000 Ar (5€)", roots:"Taxi : 5 000 Ar" }],
+        nosybe: [{ title:"🛬 Fascene → Hell-Ville", desc:"Transfert privé.", prix:"35 000 Ar (7€)", roots:"Taxi : 5 000 Ar" }],
+        diego: [{ title:"🛬 Aéroport → Centre", desc:"Transfert privé.", prix:"25 000 Ar (5€)", roots:"Taxi : 5 000 Ar" }],
+        tamatave: [{ title:"🛬 Aéroport → Centre", desc:"Transfert privé.", prix:"20 000 Ar (4€)", roots:"Taxi : 3 000 Ar" }]
+    };
+
+    const faqData = [
+        { q:"Où est basé Randria ?", a:"Entre Tana et Majunga. Il se déplace sur tout Madagascar. Junga Tour couvre toute l'île." },
+        { q:"Comment payer ?", a:"Acompte en ligne : 30€ frais dossier + 30% du solde. Le reste sur place à Randria." },
+        { q:"Meilleure période ?", a:"Avril à novembre (saison sèche). Baleines à Nosy Be en juillet-août." },
+        { q:"Faut-il un visa ?", a:"Oui, 35€ à l'arrivée pour 30 jours. Passeport valide 6 mois." },
+        { q:"Les guides sont-ils formés aux premiers secours ?", a:"<strong>Oui !</strong> Tous nos guides HOLDEST sont formés aux gestes qui sauvent : RCP, PLS, soins des plaies, étouffement, malaise, fractures, brûlures. Chaque guide a une <strong>trousse de secours complète</strong> et connaît les hôpitaux locaux." },
+        { q:"Que se passe-t-il si mon vol a du retard ?", a:"<strong>L'attente est GRATUITE et illimitée.</strong> Randria suit votre vol en temps réel. Même à 2h du matin, il sera là avec un panneau à votre nom. Aucun supplément, c'est notre engagement HOLDEST." },
+        { q:"Quels sont les avis TripAdvisor ?", a:"Junga Tour est noté <strong>5/5 étoiles</strong> sur TripAdvisor. Les voyageurs saluent l'authenticité, la gentillesse et la fiabilité du guide Randria. Plus de 50 avis positifs." },
+        { q:"Que signifie 'Mora Mora' ?", a:"C'est l'art de prendre son temps, de ne pas stresser. À Madagascar, tout se fait 'mora mora' (doucement). Randria vous apprendra à apprécier ce rythme de vie." },
+        { q:"Quelle est votre politique d'annulation ?", a:"<strong>Garantie HOLDEST :</strong> Annulation J-7 = remboursement 100% (hors 30€ dossier). Annulation J-2 = remboursement 50%. Intempéries = activité reportée ou remboursement partiel. Annulation par HOLDEST = remboursement intégral." }
+    ];
+
+    const testimonialsData = [
+        { text:"Randria, un frère. Il m'a fait découvrir le vrai Madagascar. Inoubliable.", author:"Sophie & Marc (Paris)", stars:5, source:"TripAdvisor" },
+        { text:"Trip roots incroyable. On se sent en sécurité et privilégié. Randria connaît tous les bons plans.", author:"Luca (Italie)", stars:5, source:"TripAdvisor" },
+        { text:"HOLDEST a tout organisé parfaitement. Randria est d'une gentillesse rare. Je recommande les yeux fermés.", author:"Claire & Julien (Lyon)", stars:5, source:"Google" },
+        { text:"Meilleur guide de Madagascar ! Professionnel, ponctuel, flexible. Il nous a fait vivre des moments magiques.", author:"Thomas & Marine (Bordeaux)", stars:5, source:"TripAdvisor" },
+        { text:"Un séjour sur mesure exceptionnel. Randria s'est adapté à nos envies et à notre budget. Merci !", author:"Isabelle (Genève)", stars:5, source:"TripAdvisor" }
+    ];
+
+    // ==================== FONCTIONS ====================
+    function showToast(message) {
+        const toast = document.createElement('div');
+        toast.className = 'toast-notification';
+        toast.innerHTML = message;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
     }
 
-    async function publishPost(file, caption) { const msg = document.getElementById("publishMsg"); if(!file){ msg.textContent = "❌ Choisis un média"; return false; } const mediaType = file.type.startsWith("image/") ? "image" : file.type.startsWith("video/") ? "video" : null; if(!mediaType){ msg.textContent = "❌ Format non supporté"; return false; } msg.textContent = "⏳ Upload..."; try { const profile = await getProfile(); const ext = file.name.split('.').pop(); const path = `public/${currentUser.id}/${Date.now()}_${Math.random().toString(36).substr(2,6)}.${ext}`; await supabase.storage.from("media").upload(path, file); const { data: urlData } = supabase.storage.from("media").getPublicUrl(path); await supabase.from("posts").insert({ user_id: currentUser.id, user_username: profile.username, caption: caption || null, media_url: urlData.publicUrl, media_type: mediaType }); msg.textContent = "✅ Publié !"; return true; } catch(e){ msg.textContent = "❌ " + e.message; return false; } }
+    function openModal(id) { 
+        const modal = document.getElementById(id);
+        if (modal) modal.classList.add('active');
+    }
+    function closeModal(id) { 
+        const modal = document.getElementById(id);
+        if (modal) modal.classList.remove('active');
+    }
 
-    async function updateProfile(bio) { if(!currentUser) return; await supabase.from("profiles").update({ bio }).eq("id", currentUser.id); showToast("✅ Profil mis à jour"); loadUserProfile(currentUser.id); }
+    function copyManagerCode() {
+        navigator.clipboard.writeText("HOLDEST_MANAGER_2025").then(() => showToast("✅ Code partenaire copié !"));
+    }
 
-    // Camera functions
-    async function startCam() { document.getElementById("cameraContainer").classList.remove("hidden"); if(cameraStream) stopCam(); try { cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode, width: { ideal: 1080 }, height: { ideal: 1920 } }, audio: false }); document.getElementById("cameraFeed").srcObject = cameraStream; document.getElementById("cameraFeed").classList.toggle('front', facingMode === 'user'); } catch(e){ showToast("❌ Caméra indisponible"); document.getElementById("cameraContainer").classList.add("hidden"); } }
-    function stopCam() { if(cameraStream){ cameraStream.getTracks().forEach(t=>t.stop()); cameraStream = null; } }
-    function takePhoto() { if(!cameraStream) return; const v = document.getElementById("cameraFeed"), c = document.createElement("canvas"); c.width = v.videoWidth; c.height = v.videoHeight; const ctx = c.getContext("2d"); if(facingMode === 'user'){ ctx.translate(c.width,0); ctx.scale(-1,1); } ctx.drawImage(v,0,0,c.width,c.height); c.toBlob(b => { const f = new File([b], `cam_${Date.now()}.jpg`, {type:'image/jpeg'}); const dt = new DataTransfer(); dt.items.add(f); document.getElementById("postMediaFile").files = dt.files; document.getElementById("postMediaPreview").innerHTML = `<img src="${URL.createObjectURL(b)}" style="width:100%;border-radius:12px;">`; document.getElementById("cameraContainer").classList.add("hidden"); stopCam(); document.getElementById("createPostModal").classList.add("active"); showToast("📸 Photo prise !"); }, 'image/jpeg', 0.9); }
-    function startRec() { if(!cameraStream) return; recordedChunks = []; mediaRecorder = new MediaRecorder(cameraStream, { mimeType: 'video/webm' }); mediaRecorder.ondataavailable = e => { if(e.data.size) recordedChunks.push(e.data); }; mediaRecorder.onstop = () => { const b = new Blob(recordedChunks, {type:'video/webm'}); const f = new File([b], `cam_${Date.now()}.webm`, {type:'video/webm'}); const dt = new DataTransfer(); dt.items.add(f); document.getElementById("postMediaFile").files = dt.files; document.getElementById("postMediaPreview").innerHTML = `<video src="${URL.createObjectURL(b)}" controls style="width:100%;border-radius:12px;"></video>`; document.getElementById("cameraContainer").classList.add("hidden"); stopCam(); document.getElementById("createPostModal").classList.add("active"); showToast("🎬 Vidéo enregistrée !"); }; mediaRecorder.start(); isRecording = true; document.getElementById("captureBtn").classList.add("recording"); showToast("🔴 Enregistrement..."); }
-    function stopRec() { if(mediaRecorder && isRecording){ mediaRecorder.stop(); isRecording = false; document.getElementById("captureBtn").classList.remove("recording"); } }
+    function openRootsDevisModal() {
+        closeModal('rootsInterface');
+        openModal('rootsDevisModal');
+    }
 
-    // YouTube
-    async function searchYouTube(q='') { const container = document.getElementById("youtubeContent"); container.innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner"></i> Recherche...</div>'; try { const res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=15&q=${encodeURIComponent(q||'trending')}&type=video&key=AIzaSyCjV5ExprZ8MQ0Uf2teQRCvBGQN3XqV6jQ`); const data = await res.json(); if(!data.items?.length){ container.innerHTML = '<div class="text-center p-20">Aucune vidéo</div>'; return; } container.innerHTML = data.items.map(i => `<div class="youtube-video-card" onclick="window.open('https://www.youtube.com/watch?v=${i.id.videoId}','_blank')"><img class="youtube-thumbnail" src="${i.snippet.thumbnails.medium.url}"><div class="youtube-video-info"><div class="youtube-video-title">${escapeHtml(i.snippet.title)}</div><div class="youtube-channel">${escapeHtml(i.snippet.channelTitle)}</div></div></div>`).join(''); } catch(e){ container.innerHTML = '<div class="text-center p-20">Erreur YouTube</div>'; } }
+    function showSecuriteModal() {
+        document.getElementById('securiteContent').innerHTML = `
+            <h3><i class="fas fa-first-aid" style="color:#2980b9;"></i> 🛡️ Sécurité & Santé</h3>
+            <p style="margin-bottom:16px;"><strong>Tous les guides HOLDEST × Junga Tour</strong> sont formés aux gestes qui sauvent. Voici leurs compétences :</p>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:16px;">
+                <div style="background:#f0f8ff; padding:10px; border-radius:12px; text-align:center;"><i class="fas fa-heartbeat" style="color:#e74c3c; font-size:1.5rem; display:block; margin-bottom:4px;"></i>Massage cardiaque (RCP)</div>
+                <div style="background:#f0f8ff; padding:10px; border-radius:12px; text-align:center;"><i class="fas fa-bed" style="color:#2980b9; font-size:1.5rem; display:block; margin-bottom:4px;"></i>Position latérale de sécurité</div>
+                <div style="background:#f0f8ff; padding:10px; border-radius:12px; text-align:center;"><i class="fas fa-band-aid" style="color:#27ae60; font-size:1.5rem; display:block; margin-bottom:4px;"></i>Soins des plaies</div>
+                <div style="background:#f0f8ff; padding:10px; border-radius:12px; text-align:center;"><i class="fas fa-lungs" style="color:#e74c3c; font-size:1.5rem; display:block; margin-bottom:4px;"></i>Gestion étouffement</div>
+                <div style="background:#f0f8ff; padding:10px; border-radius:12px; text-align:center;"><i class="fas fa-bone" style="color:#f39c12; font-size:1.5rem; display:block; margin-bottom:4px;"></i>Fractures & brûlures</div>
+                <div style="background:#f0f8ff; padding:10px; border-radius:12px; text-align:center;"><i class="fas fa-bug" style="color:#27ae60; font-size:1.5rem; display:block; margin-bottom:4px;"></i>Piqûres & morsures</div>
+            </div>
+            <p style="font-size:0.9rem; margin-bottom:12px;"><i class="fas fa-medkit" style="color:#e74c3c;"></i> <strong>Trousse de secours complète</strong> dans chaque véhicule.</p>
+            <p style="font-size:0.9rem; margin-bottom:12px;"><i class="fas fa-hospital" style="color:#2980b9;"></i> <strong>Connaissance des hôpitaux et cliniques</strong> de chaque région.</p>
+            <button class="btn-full" style="background:#ddd;" onclick="closeModal('securiteModal')">Fermer</button>
+        `;
+        openModal('securiteModal');
+    }
 
-    // Games
-    function initSnake() { const c = document.getElementById("gameContent"); c.innerHTML = `<canvas id="snakeCanvas" width="300" height="300" style="border:2px solid var(--primary-color);border-radius:8px;"></canvas><div class="game-controls" style="margin-top:10px;"><button class="action-btn" id="snakeUp">⬆️</button><button class="action-btn" id="snakeLeft">⬅️</button><button class="action-btn" id="snakeDown">⬇️</button><button class="action-btn" id="snakeRight">➡️</button><button class="action-btn" id="snakeRestart">🔄 Redémarrer</button></div><div id="snakeScore" style="margin-top:10px;font-weight:bold;">Score: 0</div>`; let snake = [{x:10,y:10}], dir='right', food={}, score=0, loop; const canvas = document.getElementById("snakeCanvas"), ctx = canvas.getContext("2d"), gs=20, tc=15; function spawnFood(){ food = {x: Math.floor(Math.random()*tc), y: Math.floor(Math.random()*tc)}; if(snake.some(s=>s.x===food.x&&s.y===food.y)) spawnFood(); } spawnFood(); function draw(){ ctx.fillStyle='#000'; ctx.fillRect(0,0,canvas.width,canvas.height); ctx.fillStyle='#32d74b'; ctx.fillRect(food.x*gs,food.y*gs,gs-2,gs-2); ctx.fillStyle='#ff2d55'; snake.forEach(s=>ctx.fillRect(s.x*gs,s.y*gs,gs-2,gs-2)); } function update(){ const head = {...snake[0]}; if(dir==='right') head.x++; if(dir==='left') head.x--; if(dir==='down') head.y++; if(dir==='up') head.y--; if(head.x<0 || head.x>=tc || head.y<0 || head.y>=tc || snake.some(s=>s.x===head.x&&s.y===head.y)){ clearInterval(loop); document.getElementById("snakeScore").innerHTML = `Score: ${score} - GAME OVER`; return; } snake.unshift(head); if(head.x===food.x && head.y===food.y){ score+=10; document.getElementById("snakeScore").innerHTML = `Score: ${score}`; spawnFood(); } else { snake.pop(); } draw(); } function restart(){ snake = [{x:10,y:10}]; dir='right'; score=0; document.getElementById("snakeScore").innerHTML = 'Score: 0'; spawnFood(); if(loop) clearInterval(loop); loop = setInterval(update, 100); draw(); } document.getElementById("snakeUp").onclick = () => { if(dir !== 'down') dir = 'up'; }; document.getElementById("snakeDown").onclick = () => { if(dir !== 'up') dir = 'down'; }; document.getElementById("snakeLeft").onclick = () => { if(dir !== 'right') dir = 'left'; }; document.getElementById("snakeRight").onclick = () => { if(dir !== 'left') dir = 'right'; }; document.getElementById("snakeRestart").onclick = restart; restart(); }
-    function initMorpion() { const c = document.getElementById("gameContent"); let board = Array(9).fill(null), current = 'X'; c.innerHTML = `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px;max-width:300px;margin:0 auto;" id="morpionBoard"></div><div id="morpionStatus" style="margin-top:10px;text-align:center;">Tour de X</div><button class="action-btn" id="morpionReset" style="margin-top:10px;">🔄 Réinitialiser</button>`; const boardDiv = document.getElementById("morpionBoard"); function render(){ boardDiv.innerHTML = board.map((v,i) => `<div style="background:var(--card-bg);aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:40px;font-weight:bold;border-radius:12px;cursor:pointer;" data-idx="${i}">${v || ''}</div>`).join(''); document.querySelectorAll("[data-idx]").forEach(cell => { cell.onclick = () => { const idx = parseInt(cell.dataset.idx); if(board[idx] || checkWinner()) return; board[idx] = current; render(); if(checkWinner()){ document.getElementById("morpionStatus").innerHTML = `${current} a gagné !`; } else if(board.every(v=>v)){ document.getElementById("morpionStatus").innerHTML = "Match nul !"; } else { current = current === 'X' ? 'O' : 'X'; document.getElementById("morpionStatus").innerHTML = `Tour de ${current}`; } }; }); } function checkWinner(){ const wins = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]]; return wins.some(w => board[w[0]] && board[w[0]] === board[w[1]] && board[w[1]] === board[w[2]]); } document.getElementById("morpionReset").onclick = () => { board = Array(9).fill(null); current = 'X'; document.getElementById("morpionStatus").innerHTML = "Tour de X"; render(); }; render(); }
+    function showRetardModal() {
+        document.getElementById('retardContent').innerHTML = `
+            <h3><i class="fas fa-clock" style="color:#f0c040;"></i> ⏰ Vol retardé ? Pas de panique !</h3>
+            <p style="font-size:1.1rem; margin-bottom:16px;"><strong>L'attente est TOTALEMENT GRATUITE.</strong></p>
+            <p style="margin-bottom:12px;">Randria suit votre vol en temps réel. Si votre avion a du retard, il vous attendra <strong>sans aucun frais supplémentaire</strong>, quelle que soit l'heure d'arrivée.</p>
+            <div style="background:#fff9e6; padding:14px; border-radius:12px; margin-bottom:12px;">
+                <p><i class="fas fa-check" style="color:#27ae60;"></i> <strong>Suivi de vol en direct</strong></p>
+                <p><i class="fas fa-check" style="color:#27ae60;"></i> <strong>Aucun supplément</strong> pour le retard</p>
+                <p><i class="fas fa-check" style="color:#27ae60;"></i> <strong>Panneau à votre nom</strong> quoi qu'il arrive</p>
+            </div>
+            <button class="btn-full" style="background:#ddd;" onclick="closeModal('retardModal')">Fermer</button>
+        `;
+        openModal('retardModal');
+    }
 
-    function switchPage(page) { currentPage = page; document.querySelectorAll(".page").forEach(p => p.classList.remove("active")); document.getElementById(page === 'home' ? 'homePage' : page === 'discover' ? 'discoverPage' : page === 'profile' ? 'profilePage' : page === 'youtube' ? 'youtubePage' : 'gamesPage').classList.add("active"); document.querySelectorAll(".nav-item[data-page]").forEach(n => n.classList.remove("active")); const activeNav = document.querySelector(`.nav-item[data-page="${page}"]`); if(activeNav) activeNav.classList.add("active"); if(page === 'home') loadFeed(); if(page === 'discover') { loadDiscoverFeed(); loadUsers(); } if(page === 'youtube') searchYouTube(); if(page === 'games') document.getElementById("gameEmbed").classList.add("hidden"); }
+    function showFormuleDetail(formula) {
+        const f = formulesDetailData[formula];
+        if (!f) return;
+        document.getElementById('formuleDetailContent').innerHTML = `
+            <div style="text-align:center; margin-bottom:16px;">
+                <img src="${f.image}" style="width:100%; height:180px; object-fit:cover; border-radius:16px; margin-bottom:12px;" alt="${f.titre}">
+                <h3>${f.titre}</h3>
+                <p style="color:var(--primary-dark); font-weight:600;">${f.slogan}</p>
+            </div>
+            <p style="font-size:0.9rem; margin-bottom:16px;">${f.description}</p>
+            ${f.details.map(d => `
+                <div style="display:flex; justify-content:space-between; padding:12px; background:#f9fdf9; border-radius:12px; margin-bottom:8px;">
+                    <div><strong>${d.label}</strong><br><small style="color:var(--text-soft);">${d.desc}</small></div>
+                    <div style="font-weight:700; color:var(--primary-dark);">${d.valeur}</div>
+                </div>
+            `).join('')}
+            <div style="text-align:center; margin-top:16px; padding:12px; background:var(--green); color:white; border-radius:16px; font-weight:700;">
+                Total estimé : ${f.total}
+            </div>
+            <button class="btn-full" style="background:#ddd; margin-top:8px;" onclick="closeModal('formuleDetailModal')">Fermer</button>
+        `;
+        openModal('formuleDetailModal');
+    }
 
-    // Global window functions
-    window.likePost = toggleLike; window.sendCommentById = async (pid) => { const inp = document.getElementById(`ci-${pid}`); if(inp?.value.trim()){ await addComment(pid, inp.value); inp.value = ""; } }; window.toggleCommentsSection = (pid) => document.getElementById(`comments-${pid}`)?.classList.toggle("open"); window.deletePostById = async (pid) => { if(confirm("Supprimer ce post ?")){ await supabase.from("posts").delete().eq("id", pid); showToast("✅ Post supprimé"); loadFeed(); if(currentPage === 'discover') loadDiscoverFeed(); if(viewedUserId) loadUserProfile(viewedUserId); } }; window.viewUserProfile = loadUserProfile; window.followUserById = followUser; window.showFollowList = async (uid, type) => { const { data } = await supabase.from("follows").select(`${type === 'followers' ? 'follower_id' : 'followee_id'}`).eq(type === 'followers' ? 'followee_id' : 'follower_id', uid); if(!data?.length){ document.getElementById("followList").innerHTML = '<div class="text-center p-20">Aucun utilisateur</div>'; } else { const ids = data.map(d => type === 'followers' ? d.follower_id : d.followee_id); const { data: users } = await supabase.from("profiles").select("*").in("id", ids); document.getElementById("followList").innerHTML = users.map(u => `<div class="user-item"><div class="user-info" onclick="window.viewUserProfile('${u.id}');document.getElementById('followModal').classList.remove('active');"><div class="user-avatar">${(u.username||"U")[0].toUpperCase()}</div><div><strong>${escapeHtml(u.username)}</strong></div></div></div>`).join(''); } document.getElementById("followModalTitle").innerHTML = type === 'followers' ? 'Abonnés' : 'Abonnements'; document.getElementById("followModal").classList.add("active"); }; window.openEditProfile = () => { document.getElementById("editBio").value = ""; document.getElementById("editProfileModal").classList.add("active"); };
+    function showSortieDetail(cityKey) {
+        const s = sortiesDetailData[cityKey];
+        if (!s) return;
+        let html = `<div style="text-align:center; margin-bottom:16px;"><h3>${s.title}</h3><p style="color:var(--text-soft);">${s.desc}</p></div>`;
+        s.lieux.forEach(l => {
+            html += `<div class="sortie-lieu-card">
+                        <span class="lieu-type">${l.type}</span>
+                        <h5>${l.nom}</h5>
+                        <p>${l.desc}</p>
+                        <div class="lieu-horaire"><i class="far fa-clock"></i> ${l.horaires}</div>
+                        <div class="lieu-prix">💰 ${l.prix || "Prix sur place"}</div>
+                        <div class="lieu-conseil"><i class="fas fa-lightbulb"></i> 💡 ${l.conseil || "Demandez conseil à Randria !"}</div>
+                    </div>`;
+        });
+        html += `<button class="btn-full" style="background:#ddd; margin-top:8px;" onclick="closeModal('sortieDetailModal')">Fermer</button>`;
+        document.getElementById('sortieDetailContent').innerHTML = html;
+        openModal('sortieDetailModal');
+    }
 
-    async function updateUI() { if(currentUser){ const profile = await getProfile(); const name = profile?.username || currentUser.email?.split('@')[0] || "User"; document.getElementById("headerAvatar").textContent = name[0].toUpperCase(); document.getElementById("authContainer").classList.add("hidden"); document.getElementById("navbar").classList.remove("hidden"); document.getElementById("mainHeader").classList.remove("hidden"); document.getElementById("mainContent").classList.remove("hidden"); loadFeed(); } else { document.getElementById("authContainer").classList.remove("hidden"); document.getElementById("navbar").classList.add("hidden"); document.getElementById("mainHeader").classList.add("hidden"); document.getElementById("mainContent").classList.add("hidden"); } }
+    // Fonction pour afficher le profil utilisateur
+    function showUserProfile() {
+        if (!isLoggedIn) {
+            showToast("Veuillez vous connecter d'abord");
+            openModal('loginModal');
+            return;
+        }
+        
+        const profileContent = document.getElementById('profileContent');
+        const days = userDays || 7;
+        const cityName = destinationsData.find(d => d.key === userCity)?.name || userCity || "Non définie";
+        const originName = {
+            france: "France", europe: "Europe", afrique: "Afrique", autre: "Autre"
+        }[userOrigin] || "Non définie";
+        const formulaName = {
+            confort: "Confort", premium: "Premium", luxe: "Luxe"
+        }[userFormula] || "Non définie";
+        
+        // Calculer le budget estimé pour afficher
+        const budget = calculateBudget(days, userFormula || "confort", userCity || "tana");
+        
+        profileContent.innerHTML = `
+            <div class="profile-detail-item">
+                <span class="profile-detail-label"><i class="fas fa-user"></i> Nom :</span>
+                <span class="profile-detail-value">${userName}</span>
+            </div>
+            <div class="profile-detail-item">
+                <span class="profile-detail-label"><i class="fas fa-envelope"></i> Email :</span>
+                <span class="profile-detail-value">${userEmail || "Non renseigné"}</span>
+            </div>
+            <div class="profile-detail-item">
+                <span class="profile-detail-label"><i class="fas fa-globe"></i> Provenance :</span>
+                <span class="profile-detail-value">${originName}</span>
+            </div>
+            <div class="profile-detail-item">
+                <span class="profile-detail-label"><i class="fas fa-map-marker-alt"></i> Destination :</span>
+                <span class="profile-detail-value">${cityName}</span>
+            </div>
+            <div class="profile-detail-item">
+                <span class="profile-detail-label"><i class="fas fa-star"></i> Formule :</span>
+                <span class="profile-detail-value">${formulaName}</span>
+            </div>
+            <div class="profile-detail-item">
+                <span class="profile-detail-label"><i class="fas fa-calendar"></i> Durée :</span>
+                <span class="profile-detail-value">${days} jours</span>
+            </div>
+            <div class="profile-detail-item">
+                <span class="profile-detail-label"><i class="fas fa-tag"></i> Réduction :</span>
+                <span class="profile-detail-value" style="color:#27ae60;">5% sur votre voyage</span>
+            </div>
+            <div class="profile-detail-item">
+                <span class="profile-detail-label"><i class="fas fa-coins"></i> Budget estimé :</span>
+                <span class="profile-detail-value">${Math.round(budget.total)}€</span>
+            </div>
+            <hr style="margin: 12px 0;">
+            <p style="font-size:0.8rem; color:var(--text-soft); text-align:center;">
+                <i class="fas fa-shield-alt"></i> Votre espace personnel HOLDEST<br>
+                Connectez-vous pour gérer vos réservations et suivre vos voyages.
+            </p>
+        `;
+        openModal('profileModal');
+    }
 
-    // Event Listeners
-    document.getElementById("switchToRegister").onclick = () => { document.getElementById("loginForm").classList.add("hidden"); document.getElementById("registerForm").classList.remove("hidden"); };
-    document.getElementById("switchToLogin").onclick = () => { document.getElementById("registerForm").classList.add("hidden"); document.getElementById("loginForm").classList.remove("hidden"); };
-    document.getElementById("loginBtn").onclick = async () => { const email = document.getElementById("loginEmail").value, pwd = document.getElementById("loginPassword").value, msg = document.getElementById("loginMsg"); if(!email||!pwd){ msg.textContent="❌ Champs requis"; return; } msg.textContent="⏳..."; const { error } = await supabase.auth.signInWithPassword({ email, password: pwd }); if(error) msg.textContent="❌ "+error.message; else msg.textContent="✅ Connecté !"; };
-    document.getElementById("registerBtn").onclick = async () => { const user = document.getElementById("registerUsername").value, email = document.getElementById("registerEmail").value, pwd = document.getElementById("registerPassword").value, msg = document.getElementById("registerMsg"); if(!user||!email||pwd.length<6){ msg.textContent="❌ Champs requis + mot de passe 6+"; return; } msg.textContent="⏳..."; const { error } = await supabase.auth.signUp({ email, password: pwd, options: { data: { username: user } } }); if(error) msg.textContent="❌ "+error.message; else msg.textContent="✅ Compte créé ! Connecte-toi"; };
-    document.getElementById("headerProfile").onclick = () => { if(currentUser) loadUserProfile(currentUser.id); };
-    document.getElementById("headerCreatePost").onclick = () => { if(!currentUser){ showToast("🔒 Connecte-toi"); return; } document.getElementById("createPostModal").classList.add("active"); };
-    document.getElementById("closePostModal").onclick = () => document.getElementById("createPostModal").classList.remove("active");
-    document.getElementById("publishPostBtn").onclick = async () => { const file = document.getElementById("postMediaFile").files[0], caption = document.getElementById("postCaption").value; if(await publishPost(file, caption)){ document.getElementById("postCaption").value = ""; document.getElementById("postMediaFile").value = ""; document.getElementById("postMediaPreview").innerHTML = ""; document.getElementById("createPostModal").classList.remove("active"); loadFeed(); } };
-    document.getElementById("postMediaFile").onchange = e => { const f = e.target.files[0]; if(f) document.getElementById("postMediaPreview").innerHTML = f.type.startsWith("image/") ? `<img src="${URL.createObjectURL(f)}" style="width:100%;border-radius:12px;">` : `<video src="${URL.createObjectURL(f)}" controls style="width:100%;border-radius:12px;"></video>`; };
-    document.getElementById("openCameraBtn").onclick = (e) => { e.preventDefault(); if(!currentUser){ showToast("🔒 Connecte-toi"); return; } startCam(); };
-    document.getElementById("closeCamera").onclick = () => { document.getElementById("cameraContainer").classList.add("hidden"); stopCam(); if(isRecording) stopRec(); };
-    document.getElementById("switchCamera").onclick = () => { facingMode = facingMode === 'environment' ? 'user' : 'environment'; stopCam(); startCam(); };
-    document.getElementById("captureBtn").onclick = () => isRecording ? stopRec() : takePhoto();
-    document.getElementById("videoModeBtn").onclick = () => { if(isRecording){ stopRec(); document.getElementById("videoModeBtn").style.color = "white"; } else { startRec(); document.getElementById("videoModeBtn").style.color = "var(--primary-color)"; } };
-    document.getElementById("galleryBtn").onclick = () => document.getElementById("galleryInput").click();
-    document.getElementById("galleryInput").onchange = e => { if(e.target.files[0]){ const dt = new DataTransfer(); dt.items.add(e.target.files[0]); document.getElementById("postMediaFile").files = dt.files; const f = e.target.files[0]; document.getElementById("postMediaPreview").innerHTML = f.type.startsWith("image/") ? `<img src="${URL.createObjectURL(f)}" style="width:100%;border-radius:12px;">` : `<video src="${URL.createObjectURL(f)}" controls style="width:100%;border-radius:12px;"></video>`; document.getElementById("cameraContainer").classList.add("hidden"); stopCam(); document.getElementById("createPostModal").classList.add("active"); } };
-    document.getElementById("closeEditModal").onclick = () => document.getElementById("editProfileModal").classList.remove("active");
-    document.getElementById("saveProfileBtn").onclick = async () => { const bio = document.getElementById("editBio").value; await updateProfile(bio); document.getElementById("editProfileModal").classList.remove("active"); };
-    document.getElementById("closeFollowModal").onclick = () => document.getElementById("followModal").classList.remove("active");
-    document.getElementById("discoverSearch").oninput = (e) => loadUsers(e.target.value);
-    document.getElementById("youtubeSearch").onkeypress = (e) => { if(e.key === 'Enter') searchYouTube(e.target.value); };
-    document.querySelectorAll(".category-card").forEach(c => c.onclick = async () => { const feedDiv = document.getElementById("discoverFeed"); feedDiv.innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner"></i> Chargement...</div>'; const { data } = await supabase.from("posts").select("*").eq("category", c.dataset.category).order("created_at", { ascending: false }); await renderPosts(data || [], feedDiv); });
-    document.querySelectorAll(".game-card").forEach(c => c.onclick = () => { const game = c.dataset.game; document.getElementById("gamesList").classList.add("hidden"); document.getElementById("gameEmbed").classList.remove("hidden"); if(game === 'snake') initSnake(); if(game === 'morpion') initMorpion(); });
-    document.getElementById("closeGame").onclick = () => { document.getElementById("gameEmbed").classList.add("hidden"); document.getElementById("gamesList").classList.remove("hidden"); };
-    document.querySelectorAll(".nav-item[data-page]").forEach(n => n.onclick = (e) => { e.preventDefault(); switchPage(n.dataset.page); });
+    function register() {
+        userCity = document.getElementById('registerCity').value;
+        userOrigin = document.getElementById('regOrigin').value;
+        userFormula = document.getElementById('registerFormula').value;
+        userDays = parseInt(document.getElementById('registerDays').value);
+        userName = document.getElementById('regName').value || "Voyageur";
+        userEmail = document.getElementById('regEmail').value || "";
+        
+        if (!userCity || !userOrigin || !userFormula || !userDays) { 
+            alert("Complétez tous les champs"); 
+            return; 
+        }
+        
+        isLoggedIn = true;
+        
+        // Admin détection (email spécifique pour voir l'espace manager)
+        if (userEmail === "admin@holdest.com" || userEmail === "manager@holdest.com") {
+            isAdmin = true;
+            document.getElementById('managerSection').classList.add('visible');
+            showToast("✅ Mode Admin activé !");
+        } else {
+            isAdmin = false;
+            document.getElementById('managerSection').classList.remove('visible');
+        }
+        
+        document.querySelectorAll('#locationSelector button').forEach(b => b.classList.remove('active'));
+        const tb = document.querySelector(`#locationSelector button[data-loc="${userCity}"]`);
+        if (tb) tb.classList.add('active');
+        document.querySelectorAll('#transportLocationSelector button').forEach(b => b.classList.remove('active'));
+        const tt = document.querySelector(`#transportLocationSelector button[data-loc="${userCity}"]`);
+        if (tt) tt.classList.add('active');
+        document.querySelectorAll('#formulaSelector button').forEach(b => b.classList.remove('active'));
+        const ft = document.querySelector(`#formulaSelector button[data-formula="${userFormula}"]`);
+        if (ft) ft.classList.add('active');
+        document.querySelectorAll('#durationSelector button').forEach(b => b.classList.remove('active'));
+        const dt = document.querySelector(`#durationSelector button[data-days="${userDays}"]`);
+        if (dt) dt.classList.add('active');
+        
+        showToast("✅ Compte créé ! -5% activé.");
+        closeModal('registerModal');
+        updateHeader();
+        updateOriginInfo();
+        updateBudgetDisplay();
+        updateTransportDisplay(userCity);
+        updateMonVoyageDisplay();
+        updateExtrasDisplay(userCity);
+        updateManagerCommission();
+        activateScreen('budget');
+    }
 
-    if(supabase){ supabase.auth.onAuthStateChange(async (e, s) => { currentUser = s?.user || null; starCache.clear(); await updateUI(); }); supabase.auth.getUser().then(({ data: { user } }) => { currentUser = user; updateUI(); }); }
-})();
+    function getCityName(key) {
+        const names = { tana:"Antananarivo", majunga:"Majunga", nosybe:"Nosy Be", diego:"Diego Suarez", tamatave:"Tamatave" };
+        return names[key] || key;
+    }
+
+    function login() {
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
+        
+        isLoggedIn = true;
+        userName = "Voyageur HOLDEST";
+        userEmail = email;
+        
+        // Admin détection
+        if (email === "admin@holdest.com" || email === "manager@holdest.com") {
+            isAdmin = true;
+            document.getElementById('managerSection').classList.add('visible');
+            showToast("✅ Mode Admin activé !");
+        } else {
+            isAdmin = false;
+            document.getElementById('managerSection').classList.remove('visible');
+        }
+        
+        closeModal('loginModal');
+        updateHeader();
+        updateOriginInfo();
+        updateBudgetDisplay();
+        updateMonVoyageDisplay();
+        if (userCity) updateExtrasDisplay(userCity);
+        updateManagerCommission();
+        showToast("✅ Connecté à HOLDEST !");
+    }
+
+    function logout() {
+        isLoggedIn = false;
+        isAdmin = false;
+        userName = "";
+        userEmail = "";
+        userCity = "";
+        userOrigin = "";
+        userFormula = "";
+        userDays = 7;
+        selectedExtras = [];
+        document.getElementById('managerSection').classList.remove('visible');
+        updateHeader();
+        updateOriginInfo();
+        updateBudgetDisplay();
+        updateManagerCommission();
+        document.getElementById('monVoyageSection').style.display = 'none';
+        document.getElementById('extrasGrid').innerHTML = '<p style="text-align:center;color:var(--text-soft);">Connectez-vous pour ajouter des extras.</p>';
+        showToast("👋 Déconnecté");
+    }
+
+    function updateHeader() {
+        const hb = document.getElementById('headerButtons');
+        if (isLoggedIn) {
+            hb.innerHTML = `
+                <div class="user-profile-btn" onclick="showUserProfile()">
+                    <i class="fas fa-user-circle"></i>
+                    <span>${userName} <span class="reduction-badge">-5%</span></span>
+                </div>
+                <button class="btn-sm btn-outline" onclick="logout()">Déconnexion</button>
+                <button class="btn-sm btn-dark" onclick="openRootsInterface()"><i class="fas fa-fire"></i> Budget Serré</button>
+            `;
+        } else {
+            hb.innerHTML = `
+                <button class="btn-sm btn-outline" onclick="openModal('loginModal')">Se connecter</button>
+                <button class="btn-sm btn-filled" onclick="openModal('registerModal')">S'inscrire</button>
+                <button class="btn-sm btn-dark" onclick="openRootsInterface()"><i class="fas fa-fire"></i> Budget Serré</button>
+            `;
+        }
+    }
+
+    function updateOriginInfo() {
+        const box = document.getElementById('originInfoBox');
+        if (isLoggedIn && userOrigin) {
+            box.style.display = 'block';
+            const texts = {
+                france: { title:"Depuis la France 🇫🇷", detail:"Vol direct Paris-Ivato : 10-11h. Visa 35€. 1€ ≈ " + currentExchangeRate + " Ar." },
+                europe: { title:"Depuis l'Europe 🇪🇺", detail:"Vols avec escale. Prévoyez 14-20h." },
+                afrique: { title:"Depuis l'Afrique 🌍", detail:"Vols directs depuis Nairobi, Addis-Abeba." },
+                autre: { title:"Depuis l'étranger ✈️", detail:"Randria s'adapte à votre itinéraire." }
+            };
+            const info = texts[userOrigin] || texts.autre;
+            document.getElementById('originTitle').innerText = info.title;
+            document.getElementById('originDetails').innerText = info.detail;
+        } else { 
+            box.style.display = 'none'; 
+        }
+    }
+
+    function updateMonVoyageDisplay() {
+        if (!isLoggedIn || !userCity) return;
+        document.getElementById('monVoyageSection').style.display = 'block';
+        const cityName = destinationsData.find(d => d.key === userCity)?.name || getCityName(userCity);
+        const programme = programmesData[userCity] || programmesData.tana;
+        let progHtml = '<div class="programme-detail"><h4><i class="fas fa-calendar-week"></i> Programme jour par jour</h4>';
+        const maxJ = Math.min(userDays, programme.length);
+        for (let i = 0; i < maxJ; i++) {
+            progHtml += `<div class="jour-item"><div class="jour-num">Jour ${programme[i].jour}</div><div class="jour-desc">${programme[i].desc}</div></div>`;
+        }
+        if (userDays > programme.length) progHtml += `<p style="margin-top:12px;"><em>+ jours supplémentaires personnalisables</em></p>`;
+        progHtml += '</div>';
+        document.getElementById('monVoyageCard').innerHTML = `
+            <h3><i class="fas fa-suitcase"></i> Mon voyage HOLDEST × Junga Tour</h3>
+            <p><strong>📍 ${cityName}</strong> | 📅 ${userDays}j | ⭐ ${userFormula}</p>
+            <p><strong>🌍</strong> ${userOrigin === 'france' ? 'France' : userOrigin === 'europe' ? 'Europe' : userOrigin === 'afrique' ? 'Afrique' : 'Autre'}</p>
+            ${progHtml}
+            <button class="btn-sm btn-filled" onclick="activateScreen('budget')" style="width:100%;">💰 Voir budget</button>
+        `;
+    }
+
+    function updateExtrasDisplay(city) {
+        const extras = extrasData[city] || extrasData.tana;
+        document.getElementById('extrasGrid').innerHTML = extras.map(e => `
+            <div class="extra-card" data-extra="${e.name}" data-price="${e.price}" onclick="toggleExtra(this, '${e.name}', ${e.price})">
+                <i class="fas fa-glass-cheers"></i>
+                <div><strong>${e.name}</strong></div>
+                <div class="extra-price">${e.price}€</div>
+                <small>${e.desc}</small>
+            </div>
+        `).join('');
+        document.querySelectorAll('.extra-card').forEach(card => {
+            if (selectedExtras.find(e => e.name === card.dataset.extra)) card.classList.add('selected');
+        });
+    }
+
+    function toggleExtra(el, name, price) {
+        el.classList.toggle('selected');
+        if (el.classList.contains('selected')) {
+            selectedExtras.push({ name, price });
+        } else {
+            selectedExtras = selectedExtras.filter(e => e.name !== name);
+        }
+        updateBudgetDisplay();
+        updateManagerCommission();
+    }
+
+    function updateTransportDisplay(loc) {
+        const data = transportDetailsData[loc] || transportDetailsData.tana;
+        document.getElementById('transportDetailsGrid').innerHTML = data.map(t => `
+            <div class="card"><div class="card-content"><h3>${t.title}</h3><p>${t.desc}</p><p><strong>🌟</strong> ${t.prix}</p><p style="color:var(--primary);"><strong>🌿 Roots :</strong> ${t.roots}</p><button class="reserve-btn">Réserver</button></div></div>
+        `).join('');
+    }
+
+    function updateManagerCommission() {
+        if (!isAdmin) return; // Seulement pour l'admin
+        const days = parseInt(document.querySelector('#durationSelector button.active')?.dataset.days || 7);
+        const formula = document.querySelector('#formulaSelector button.active')?.dataset.formula || 'confort';
+        const location = document.querySelector('#locationSelector button.active')?.dataset.loc || 'tana';
+        const { total } = calculateBudget(days, formula, location);
+        document.getElementById('managerCommission').innerText = `${Math.round(total * 0.1)}€`;
+    }
+
+    document.getElementById('transportLocationSelector').addEventListener('click', e => {
+        if (e.target.tagName === 'BUTTON') {
+            document.querySelectorAll('#transportLocationSelector button').forEach(b => b.classList.remove('active'));
+            e.target.classList.add('active');
+            updateTransportDisplay(e.target.dataset.loc);
+        }
+    });
+
+    document.getElementById('acompteOptions').addEventListener('click', e => {
+        const opt = e.target.closest('.acompte-option');
+        if (!opt) return;
+        document.querySelectorAll('.acompte-option').forEach(o => { o.classList.remove('selected'); o.style.background='white'; o.style.borderColor='#ddd'; o.style.color='#1a2b22'; });
+        opt.classList.add('selected');
+        opt.style.background='#f0f7f2'; opt.style.borderColor='var(--green)'; opt.style.color='#1a2b22';
+        selectedAcompte = opt.dataset.acompte;
+        document.getElementById('acompteDescription').innerHTML = selectedAcompte === 'aeroport'
+            ? "<strong>Aéroport :</strong> Randria vous accueille avec un panneau. Frais dossier 30€ + 30% du solde. <span style='color:#27ae60;'>🕒 Retard vol = attente GRATUITE.</span>"
+            : "<strong>Sur place :</strong> Rendez-vous convenu. Frais dossier 30€ + 30% du solde.";
+        updateBudgetDisplay();
+        updateManagerCommission();
+    });
+
+    function calculateBudget(days, formula, location) {
+        const basePrices = {
+            confort: { guide: 28, transport: 22, hebergement: 25, repas: 12, activites: 15 },
+            premium: { guide: 38, transport: 35, hebergement: 40, repas: 20, activites: 22 },
+            luxe: { guide: 55, transport: 55, hebergement: 65, repas: 30, activites: 28 }
+        };
+        let p = { ...basePrices[formula] };
+        
+        if (location === 'nosybe' || location === 'diego') {
+            p = { ...p, transport: Math.round(p.transport * 1.15), hebergement: Math.round(p.hebergement * 1.1) };
+        }
+        
+        let aeroportFee = 0;
+        if (selectedAcompte === 'aeroport') {
+            const fees = { tana: 15, majunga: 10, nosybe: 25, diego: 30, tamatave: 20 };
+            aeroportFee = fees[location] || 15;
+        }
+        
+        let guideCostPerDay = p.guide;
+        let transportCostPerDay = p.transport;
+        let hebergementCostPerDay = p.hebergement;
+        let repasCostPerDay = p.repas;
+        let activitesCostPerDay = p.activites;
+        
+        let peopleFactor = 1;
+        let hebergementFactor = 1;
+        
+        if (currentPeopleCount === 2) {
+            hebergementFactor = 0.5;
+            peopleFactor = 2;
+        } else if (currentPeopleCount >= 4) {
+            hebergementFactor = 0.5;
+            peopleFactor = currentPeopleCount;
+            if (currentPeopleCount >= 6) {
+                guideCostPerDay = p.guide * 0.7;
+                transportCostPerDay = p.transport * 0.6;
+            } else {
+                guideCostPerDay = p.guide * 0.8;
+                transportCostPerDay = p.transport * 0.7;
+            }
+        } else {
+            peopleFactor = 1;
+            hebergementFactor = 1;
+        }
+        
+        const guideTotal = guideCostPerDay * days;
+        const transportTotal = (transportCostPerDay * days) + (aeroportFee / peopleFactor);
+        const hebergementTotal = (hebergementCostPerDay * days) * hebergementFactor;
+        const repasTotal = repasCostPerDay * days;
+        const activitesTotal = activitesCostPerDay * days;
+        
+        let items = [
+            { label: "Guide Randria", eur: guideTotal },
+            { label: "Transport", eur: transportTotal },
+            { label: "Hébergement", eur: hebergementTotal },
+            { label: "Repas", eur: repasTotal },
+            { label: "Activités", eur: activitesTotal }
+        ];
+        
+        let extrasTotal = selectedExtras.reduce((s, e) => s + e.price, 0);
+        if (extrasTotal > 0) items.push({ label: "🎉 Extras", eur: extrasTotal });
+        
+        let total = items.reduce((s, i) => s + i.eur, 0);
+        let reduction = isLoggedIn ? Math.round(total * 0.05) : 0;
+        total -= reduction;
+        
+        const fraisDossier = 30;
+        const acompteReservation = Math.round((total - fraisDossier) * 0.3);
+        const acompteTotal = fraisDossier + acompteReservation;
+        const solde = total - acompteTotal;
+        
+        return { items, total, reduction, fraisDossier, acompteReservation, acompteTotal, solde };
+    }
+
+    function updateBudgetDisplay() {
+        const db = document.querySelector('#durationSelector button.active');
+        const fb = document.querySelector('#formulaSelector button.active');
+        const lb = document.querySelector('#locationSelector button.active');
+        if (!db || !fb || !lb) return;
+        const days = parseInt(db.dataset.days);
+        const formula = fb.dataset.formula;
+        const location = lb.dataset.loc;
+        const { items, total, reduction, fraisDossier, acompteReservation, acompteTotal, solde } = calculateBudget(days, formula, location);
+        
+        let html = `<div class="row header-row"><span>Poste (par voyageur)</span><span>€</span><span>Ariary</span></div>`;
+        items.forEach(i => html += `<div class="row"><span>${i.label}</span><span class="price-eur">${Math.round(i.eur)}€</span><span class="price-ar">${Math.round(i.eur * currentExchangeRate).toLocaleString()} Ar</span></div>`);
+        if (reduction > 0) html += `<div class="row" style="color:#27ae60;"><span>✅ Réduction 5%</span><span>-${reduction}€</span><span>-${Math.round(reduction * currentExchangeRate).toLocaleString()} Ar</span></div>`;
+        html += `<div class="row total"><span>💰 TOTAL (${currentPeopleCount} personne${currentPeopleCount > 1 ? 's' : ''})</span><span>${Math.round(total)}€</span><span>${Math.round(total * currentExchangeRate).toLocaleString()} Ar</span></div>`;
+        html += `<div class="row dossier"><span>📋 Frais dossier</span><span>${fraisDossier}€</span><span>${Math.round(fraisDossier * currentExchangeRate).toLocaleString()} Ar</span></div>`;
+        html += `<div class="row acompte"><span>🔒 Acompte 30%</span><span>${acompteReservation}€</span><span>${Math.round(acompteReservation * currentExchangeRate).toLocaleString()} Ar</span></div>`;
+        html += `<div class="row" style="background:#fff3e0; font-weight:700;"><span>💳 À payer en ligne</span><span>${acompteTotal}€</span><span>${Math.round(acompteTotal * currentExchangeRate).toLocaleString()} Ar</span></div>`;
+        html += `<div class="row"><span>💵 Solde sur place</span><span>${Math.round(solde)}€</span><span>${Math.round(solde * currentExchangeRate).toLocaleString()} Ar</span></div>`;
+        
+        document.getElementById("budgetTable").innerHTML = html;
+        document.getElementById("reductionMsg").innerHTML = isLoggedIn ? `<span class="reduction-badge">-5%</span> Appliquée !` : `<a href="#" onclick="openModal('registerModal'); return false;">🔒 Compte HOLDEST = -5%</a>`;
+        updateManagerCommission();
+    }
+
+    function updateRootsBudgetDisplay() {
+        const peopleBtn = document.querySelector('#rootsPeopleSelector button.active');
+        let rootsPeople = peopleBtn ? parseInt(peopleBtn.dataset.peopleRoots) : 1;
+        if (isNaN(rootsPeople)) rootsPeople = 1;
+        
+        const guidePerDay = 28;
+        const transportPerDay = 10;
+        const hebergementPerNight = 15;
+        const repasPerDay = 8;
+        const activitesPerDay = 10;
+        const days = 7;
+        
+        let hebergementFactor = 1;
+        let transportFactor = 1;
+        let guideFactor = 1;
+        
+        if (rootsPeople === 2) {
+            hebergementFactor = 0.5;
+            guideFactor = 0.8;
+            transportFactor = 0.7;
+        } else if (rootsPeople >= 4) {
+            hebergementFactor = 0.4;
+            guideFactor = 0.6;
+            transportFactor = 0.5;
+            if (rootsPeople >= 6) {
+                guideFactor = 0.5;
+                transportFactor = 0.4;
+            }
+        }
+        
+        const guideTotal = guidePerDay * days * guideFactor;
+        const transportTotal = transportPerDay * days * transportFactor;
+        const hebergementTotal = (hebergementPerNight * days) * hebergementFactor;
+        const repasTotal = repasPerDay * days;
+        const activitesTotal = activitesPerDay * days;
+        const total = guideTotal + transportTotal + hebergementTotal + repasTotal + activitesTotal;
+        
+        document.getElementById('rootsGuidePrice').innerHTML = `${Math.round(guidePerDay * guideFactor)}€ x ${days}j = ${Math.round(guideTotal)}€`;
+        document.getElementById('rootsTransportPrice').innerHTML = `${Math.round(transportPerDay * transportFactor)}€ x ${days}j = ${Math.round(transportTotal)}€`;
+        document.getElementById('rootsHebergementPrice').innerHTML = `${Math.round(hebergementPerNight * hebergementFactor)}€ x ${days}j = ${Math.round(hebergementTotal)}€`;
+        document.getElementById('rootsRepasPrice').innerHTML = `${Math.round(repasPerDay)}€ x ${days}j = ${Math.round(repasTotal)}€`;
+        document.getElementById('rootsActivitesPrice').innerHTML = `${Math.round(activitesPerDay)}€ x ${days}j = ${Math.round(activitesTotal)}€`;
+        
+        const totalRounded = Math.round(total);
+        const acompteReservation = Math.round((totalRounded - 30) * 0.3);
+        const acompteTotal = 30 + acompteReservation;
+        const solde = totalRounded - acompteTotal;
+        
+        document.getElementById('rootsTotalEuro').innerHTML = `${totalRounded}€ (${Math.round(totalRounded * currentExchangeRate).toLocaleString()} Ar)`;
+        document.getElementById('rootsArTotal').innerHTML = Math.round(totalRounded * currentExchangeRate).toLocaleString();
+        document.getElementById('rootsAcompteReservation').innerHTML = `${acompteReservation}€`;
+        document.getElementById('rootsAcompteTotal').innerHTML = `${acompteTotal}€`;
+        document.getElementById('rootsSolde').innerHTML = `${Math.round(solde)}€`;
+    }
+
+    function calculateCustomRootsBudget() {
+        let days = parseInt(document.getElementById('rootsCustomDays').value);
+        let people = parseInt(document.getElementById('rootsCustomPeople').value);
+        let hebergementCost = parseFloat(document.getElementById('rootsCustomHebergement').value);
+        let repasCost = parseFloat(document.getElementById('rootsCustomRepas').value);
+        
+        if (isNaN(days)) days = 7;
+        if (isNaN(people)) people = 1;
+        if (isNaN(hebergementCost)) hebergementCost = 15;
+        if (isNaN(repasCost)) repasCost = 8;
+        
+        let guideCost = 28;
+        let transportCost = 10;
+        let activitesCost = 10;
+        
+        let hebergementFactor = 1;
+        let guideFactor = 1;
+        let transportFactor = 1;
+        
+        if (people === 2) {
+            hebergementFactor = 0.5;
+            guideFactor = 0.8;
+            transportFactor = 0.7;
+        } else if (people >= 4) {
+            hebergementFactor = 0.4;
+            guideFactor = 0.6;
+            transportFactor = 0.5;
+            if (people >= 6) {
+                guideFactor = 0.5;
+                transportFactor = 0.4;
+            }
+        }
+        
+        const total = (guideCost * days * guideFactor) + (transportCost * days * transportFactor) + (hebergementCost * days * hebergementFactor) + (repasCost * days) + (activitesCost * days);
+        const totalRounded = Math.round(total);
+        
+        document.getElementById('rootsCustomResult').innerHTML = `
+            💰 Budget total estimé : <strong>${totalRounded}€</strong> (${Math.round(totalRounded * currentExchangeRate).toLocaleString()} Ar)<br>
+            📅 ${days} jour(s) - 👥 ${people} personne(s)<br>
+            💳 Acompte (30€ dossier + 30%) : ${Math.round(30 + (totalRounded - 30) * 0.3)}€<br>
+            💵 Solde sur place : ${Math.round(totalRounded - (30 + (totalRounded - 30) * 0.3))}€
+        `;
+    }
+
+    function openDevisModal() {
+        const db = document.querySelector('#durationSelector button.active');
+        const fb = document.querySelector('#formulaSelector button.active');
+        const lb = document.querySelector('#locationSelector button.active');
+        if(db && fb && lb) {
+            const { total } = calculateBudget(parseInt(db.dataset.days), fb.dataset.formula, lb.dataset.loc);
+            document.getElementById('devisBudgetTotal').value = `${Math.round(total)}€ (${Math.round(total * currentExchangeRate).toLocaleString()} Ar)`;
+        }
+        openModal('devisModal');
+    }
+
+    async function sendDevis(event) {
+        event.preventDefault();
+        if(FORMSPREE_ENDPOINT === "https://formspree.io/f/MON_ID") {
+            showToast("⚠️ Configuration Formspree requise : créez un compte sur formspree.io et remplacez MON_ID");
+            return;
+        }
+        showToast("✅ Devis envoyé ! Randria vous répond sous 24h.");
+        closeModal('devisModal');
+        document.getElementById('devisForm').reset();
+    }
+
+    async function sendRootsDevis(event) {
+        event.preventDefault();
+        if(FORMSPREE_ROOTS_ENDPOINT === "https://formspree.io/f/MON_ID_ROOTS") {
+            showToast("⚠️ Configuration Formspree Roots requise");
+            return;
+        }
+        showToast("✅ Demande Roots envoyée !");
+        closeModal('rootsDevisModal');
+        document.getElementById('rootsDevisForm').reset();
+    }
+
+    // Event listeners
+    document.getElementById("formulaSelector").addEventListener("click", e => {
+        if (e.target.tagName === 'BUTTON') {
+            document.querySelectorAll('#formulaSelector button').forEach(b => b.classList.remove('active'));
+            e.target.classList.add('active');
+            updateBudgetDisplay();
+            updateManagerCommission();
+        }
+    });
+    document.getElementById("durationSelector").addEventListener("click", e => {
+        if (e.target.tagName === 'BUTTON') {
+            document.querySelectorAll('#durationSelector button').forEach(b => b.classList.remove('active'));
+            e.target.classList.add('active');
+            updateBudgetDisplay();
+            updateManagerCommission();
+            if (isLoggedIn && userCity) updateMonVoyageDisplay();
+        }
+    });
+    document.getElementById("locationSelector").addEventListener("click", e => {
+        if (e.target.tagName === 'BUTTON') {
+            document.querySelectorAll('#locationSelector button').forEach(b => b.classList.remove('active'));
+            e.target.classList.add('active');
+            updateBudgetDisplay();
+            updateManagerCommission();
+            if (isLoggedIn) updateExtrasDisplay(e.target.dataset.loc);
+        }
+    });
+    
+    document.querySelectorAll('.people-selector button').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            document.querySelectorAll('.people-selector button').forEach(b => b.classList.remove('active'));
+            e.target.classList.add('active');
+            currentPeopleCount = parseInt(e.target.dataset.people);
+            updateBudgetDisplay();
+        });
+    });
+    
+    document.querySelectorAll('#rootsPeopleSelector button').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            document.querySelectorAll('#rootsPeopleSelector button').forEach(b => b.classList.remove('active'));
+            e.target.classList.add('active');
+            updateRootsBudgetDisplay();
+        });
+    });
+
+    function openRootsInterface() { 
+        document.getElementById('rootsInterface').classList.add('active');
+        updateRootsBudgetDisplay();
+    }
+    function closeRootsInterface() { document.getElementById('rootsInterface').classList.remove('active'); }
+
+    function renderDestinations() {
+        document.getElementById("destinationsGrid").innerHTML = destinationsData.map(d => `
+            <div class="card" onclick="showProgramme('${d.key}')">
+                <div class="card-img" style="background-image:url('${d.image}')"><span class="overlay-badge">${d.badge}</span></div>
+                <div class="card-content"><h3>${d.name}</h3><p>${d.desc}</p>
+                <div class="card-meta"><span><i class="fas fa-cloud-sun"></i> ${d.meteo}</span><span><i class="fas fa-clock"></i> ${d.duree}</span></div>
+                <p style="font-size:0.8rem;"><i class="fas fa-star-of-life"></i> ${d.activites}</p>
+                <button class="reserve-btn">📅 Voir programme</button></div>
+            </div>`).join('');
+    }
+
+    function renderServices() {
+        document.getElementById("servicesGrid").innerHTML = servicesData.map(s => `
+            <div class="card" onclick="showFormuleDetail('${s.formula}')">
+                <div class="card-content" style="text-align:center;padding:28px;">
+                    <span class="overlay-badge" style="position:static;">${s.badge}</span>
+                    <h3>${s.name}</h3><p>${s.desc}</p>
+                    <button class="reserve-btn">🔍 Voir le détail</button>
+                </div>
+            </div>`).join('');
+    }
+
+    function renderSortiesAccueil() {
+        document.getElementById("sortiesAccueilGrid").innerHTML = Object.keys(sortiesDetailData).map(key => {
+            const s = sortiesDetailData[key];
+            return `<div class="card" onclick="showSortieDetail('${key}')">
+                        <div class="card-content">
+                            <h3>${s.title}</h3>
+                            <p>${s.desc.substring(0, 80)}...</p>
+                            <p style="font-size:0.8rem;"><i class="fas fa-map-marker-alt"></i> ${s.lieux.length} lieux à découvrir</p>
+                            <button class="reserve-btn">🔍 Voir les sorties</button>
+                        </div>
+                    </div>`;
+        }).join('');
+    }
+
+    function renderSortiesBBQ() {
+        document.getElementById("sortiesDetailContainer").innerHTML = Object.keys(sortiesDetailData).map(key => {
+            const s = sortiesDetailData[key];
+            return `<div class="sortie-detail-box">
+                        <h4>${s.title}</h4>
+                        <p style="font-size:0.85rem; color:var(--text-soft); margin-bottom:12px;">${s.desc}</p>
+                        ${s.lieux.map(l => `<div style="background:#f9fdf9; border-radius:12px; padding:12px; margin-bottom:8px; border-left:4px solid var(--primary);">
+                            <strong>${l.nom}</strong> <span style="background:var(--primary); color:white; padding:2px 8px; border-radius:10px; font-size:0.7rem;">${l.type}</span>
+                            <p style="font-size:0.8rem; margin-top:4px;">${l.desc}</p>
+                            <p style="font-size:0.7rem; color:var(--text-soft);"><i class="far fa-clock"></i> ${l.horaires}</p>
+                            <div style="font-size:0.75rem; color:var(--primary-dark); margin-top:4px;">💰 ${l.prix || "Prix sur place"}</div>
+                            <div style="font-size:0.7rem; background:#fff3e0; padding:4px 8px; border-radius:8px; margin-top:6px;"><i class="fas fa-lightbulb"></i> ${l.conseil || "Demandez conseil à Randria !"}</div>
+                        </div>`).join('')}
+                    </div>`;
+        }).join('');
+    }
+
+    function renderPartners() {
+        document.getElementById("partnersGrid").innerHTML = partnersData.map(p => `
+            <div class="partner-card"><div class="partner-header"><h4><i class="fas fa-handshake"></i> ${p.name} <span class="partner-type">${p.type}</span></h4></div>
+            <div class="partner-content"><p>${p.desc}</p><div class="partner-contact"><i class="fas fa-phone-alt"></i> ${p.contact}</div>
+            <button class="reserve-btn">Réserver via HOLDEST</button></div></div>`).join('');
+    }
+
+    function renderFAQ() {
+        document.getElementById("faqGrid").innerHTML = faqData.map(f => `
+            <div class="faq-card" onclick="this.classList.toggle('open')"><h4>❓ ${f.q}</h4><p>${f.a}</p></div>
+        `).join('');
+    }
+
+    function renderTestimonials() {
+        document.getElementById("testimonialsContainer").innerHTML = testimonialsData.map(t => `
+            <div class="testimonial-card"><div class="stars">${'★'.repeat(t.stars)}</div><p>« ${t.text} »</p><div style="margin-top:8px; font-weight:600;">— ${t.author} <span style="font-size:0.7rem; color:var(--text-soft);">(${t.source})</span></div></div>
+        `).join('');
+    }
+
+    function showProgramme(cityKey) {
+        const prog = programmesData[cityKey] || programmesData.tana;
+        let msg = "🗓️ Programme HOLDEST × Junga Tour :\n\n";
+        prog.forEach(j => { msg += `Jour ${j.jour} : ${j.desc}\n\n`; });
+        msg += "\n✨ Randria vous attend !";
+        alert(msg);
+    }
+
+    const screens = {
+        home: document.getElementById('homeScreen'),
+        budget: document.getElementById('budgetScreen'),
+        bbq: document.getElementById('bbqScreen'),
+        transport: document.getElementById('transportScreen'),
+        explore: document.getElementById('exploreScreen')
+    };
+
+    function activateScreen(id) {
+        Object.values(screens).forEach(s => s.classList.remove('active'));
+        screens[id].classList.add('active');
+        document.querySelectorAll('.tab-item').forEach(t => t.classList.toggle('active', t.dataset.screen === id));
+        if (id === 'home') { renderDestinations(); renderServices(); renderSortiesAccueil(); renderTestimonials(); renderPartners(); updateOriginInfo(); updateMonVoyageDisplay(); updateManagerCommission(); }
+        if (id === 'budget') { updateBudgetDisplay(); updateManagerCommission(); if (isLoggedIn && userCity) updateExtrasDisplay(userCity); }
+        if (id === 'transport') { const al = document.querySelector('#transportLocationSelector button.active'); updateTransportDisplay(al ? al.dataset.loc : 'tana'); }
+        if (id === 'bbq') renderSortiesBBQ();
+        if (id === 'explore') { initMap(); renderFAQ(); }
+    }
+
+    document.querySelectorAll('.tab-item').forEach(t => t.onclick = () => activateScreen(t.dataset.screen));
+
+    let mapInit = false;
+    function initMap() {
+        if (!mapInit && document.getElementById('madagascarMap')) {
+            const map = L.map('madagascarMap').setView([-18.8792, 47.5079], 5.8);
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
+            mapInit = true;
+        }
+    }
+
+    document.getElementById('searchBtn').addEventListener('click', () => {
+        const q = document.getElementById('searchInput').value.toLowerCase();
+        const found = destinationsData.find(d => d.name.toLowerCase().includes(q) || d.key.includes(q));
+        if (found) { activateScreen('home'); showProgramme(found.key); }
+        else if (q) alert("Essayez : Tana, Nosy Be, Majunga, Diego, Tamatave");
+    });
+    document.getElementById('searchInput').addEventListener('keypress', e => { if (e.key === 'Enter') document.getElementById('searchBtn').click(); });
+    document.getElementById('devisForm').addEventListener('submit', sendDevis);
+    document.getElementById('rootsDevisForm').addEventListener('submit', sendRootsDevis);
+
+    // Initialisation
+    fetchExchangeRate();
+    setInterval(fetchExchangeRate, 3600000);
+    renderDestinations();
+    renderServices();
+    renderSortiesAccueil();
+    renderTestimonials();
+    renderFAQ();
+    renderPartners();
+    updateBudgetDisplay();
+    updateTransportDisplay('tana');
+    updateManagerCommission();
+    activateScreen('home');
 </script>
 </body>
-</html>
+    </html>
